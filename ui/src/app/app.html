@@ -1,0 +1,22 @@
+<div class="container">
+  <h1>YouTube Downloader</h1>
+  
+  <div class="input-group">
+    <label for="url">YouTube URL:</label>
+    <input type="text" id="url" [(ngModel)]="url" placeholder="https://www.youtube.com/watch?v=..." [disabled]="isDownloading()">
+  </div>
+
+  <div class="input-group">
+    <label for="path">Save to:</label>
+    <div class="row">
+      <input type="text" id="path" [value]="outputPath()" readonly placeholder="Select a directory...">
+      <button (click)="selectDirectory()" [disabled]="isDownloading()">Browse</button>
+    </div>
+  </div>
+
+  <button class="download-btn" (click)="download()" [disabled]="isDownloading() || !url() || !outputPath()">
+    {{ isDownloading() ? 'Downloading...' : 'Download Video' }}
+  </button>
+
+  <p class="status">{{ status() }}</p>
+</div>

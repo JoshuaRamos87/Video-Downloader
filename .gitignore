@@ -1,0 +1,34 @@
+# Dependencies
+node_modules/
+ui/node_modules/
+
+# Build outputs
+dist/
+ui/dist/
+*.exe
+*.dmg
+*.app
+*.deb
+*.rpm
+
+# IDEs and Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+logs/
+*.log
+
+# Angular specific
+.angular/
+ui/.angular/
+
+# Electron/System
+out/
+.env
