@@ -1,9 +1,12 @@
 <div class="container">
-  <h1>YouTube Downloader</h1>
+  <h1>YouTube Downloader Pro</h1>
   
   <div class="input-group">
     <label for="url">YouTube URL:</label>
-    <input type="text" id="url" [(ngModel)]="url" placeholder="https://www.youtube.com/watch?v=..." [disabled]="isDownloading()">
+    <div class="row">
+      <input type="text" id="url" [(ngModel)]="url" placeholder="https://www.youtube.com/watch?v=..." [disabled]="isDownloading()">
+      <button (click)="fetchVideoInfo()" [disabled]="isDownloading() || isFetchingInfo() || !url()">Analyze</button>
+    </div>
   </div>
 
   <div class="input-group">
@@ -14,9 +17,35 @@
     </div>
   </div>
 
-  <button class="download-btn" (click)="download()" [disabled]="isDownloading() || !url() || !outputPath()">
-    {{ isDownloading() ? 'Downloading...' : 'Download Video' }}
+  <div *ngIf="videoInfo()" class="video-info">
+    <div class="video-header">
+      <img [src]="videoInfo().thumbnail" alt="Thumbnail" class="thumbnail">
+      <div class="video-details">
+        <h3>{{ videoInfo().title }}</h3>
+        <label for="format">Select Format:</label>
+        <select id="format" [(ngModel)]="selectedFormatId" [disabled]="isDownloading()">
+          <option *ngFor="let f of videoInfo().formats" [value]="f.id">
+            {{ f.resolution }} - {{ f.ext.toUpperCase() }} ({{ formatBytes(f.filesize) }}) {{ f.note }}
+          </option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="isDownloading()" class="progress-section">
+    <div class="progress-bar-container">
+      <div class="progress-bar" [style.width.%]="progress().percent"></div>
+    </div>
+    <div class="progress-stats">
+      <span>{{ progress().percent }}%</span>
+      <span>{{ progress().speed }}</span>
+      <span>ETA: {{ progress().eta }}</span>
+    </div>
+  </div>
+
+  <button class="download-btn" (click)="download()" [disabled]="isDownloading() || isFetchingInfo() || !url() || !outputPath() || !selectedFormatId()">
+    {{ isDownloading() ? 'Downloading...' : 'Download' }}
   </button>
 
-  <p class="status">{{ status() }}</p>
+  <p class="status" [ngClass]="{'error': status().startsWith('Error')}">{{ status() }}</p>
 </div>
