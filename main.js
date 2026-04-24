@@ -86,7 +86,6 @@ ipcMain.handle('get-video-info', async (event, url) => {
     let title = 'Unknown Title';
     let thumbnail = '';
 
-    // Try multiple sources for metadata
     const browsers = ['chrome', 'edge', 'brave'];
     let ytdlInfo;
     
@@ -98,6 +97,8 @@ ipcMain.handle('get-video-info', async (event, url) => {
           noWarnings: true,
           cookiesFromBrowser: browser,
           noPlaylist: true,
+          // Use current node runtime for extraction
+          jsRuntime: 'node'
         });
         if (ytdlInfo) break;
       } catch (e) { continue; }
@@ -172,6 +173,8 @@ ipcMain.handle('download-video', async (event, { url, outputPath, formatId }) =>
         progress: true,
         ffmpegLocation: ffmpegPath,
         format: formatId ? `${formatId}+bestaudio/best` : 'bestvideo+bestaudio/best',
+        // Fix JS runtime warning
+        jsRuntime: 'node'
       };
 
       if (browser) flags.cookiesFromBrowser = browser;
@@ -180,6 +183,12 @@ ipcMain.handle('download-video', async (event, { url, outputPath, formatId }) =>
       const ls = ytdl.exec(url, flags);
 
       let lastError = '';
+
+      // Catch the promise rejection to avoid UnhandledPromiseRejectionWarning
+      ls.catch(err => {
+        // The error is already being handled via the 'close' event
+        // but we catch it here to satisfy Node's safety checks.
+      });
 
       ls.stdout.on('data', (data) => {
         const line = data.toString();
