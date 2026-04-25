@@ -173,7 +173,8 @@ ipcMain.handle('get-video-info', async (_event, url: string): Promise<VideoInfoR
     } else {
       logger.info('Falling back to youtubei.js for video info');
       
-      const clients = ['TVHTML5', 'ANDROID', 'WEB'] as const;
+      // Include IOS and MWEB as they are currently more resilient to YouTube API parsing changes
+      const clients = ['IOS', 'MWEB', 'TVHTML5', 'ANDROID', 'WEB'] as const;
       for (const client of clients) {
         try {
           logger.debug(`Trying youtubei.js with client: ${client}`);
