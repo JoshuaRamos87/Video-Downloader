@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "build:ui": "npm run build --prefix ui",
-    "build:electron": "tsc",
+    "build:electron": "tsc && copy src-electron\\preload.cjs dist-electron\\preload.cjs",
     "build": "npm run build:ui && npm run build:electron",
     "start": "electron ."
   },

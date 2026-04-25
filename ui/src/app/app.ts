@@ -30,9 +30,9 @@ export class App implements OnInit {
 
   constructor(@Inject(PLATFORM_ID) private platformId: Object) {
     if (isPlatformBrowser(this.platformId)) {
-      // Listen for progress updates from Electron
       const api = (window as any).electronAPI;
       if (api) {
+        api.log('INFO', 'Angular app initialized and connected to Electron');
         api.onDownloadProgress((data: any) => {
           this.progress.set(data);
         });
@@ -42,12 +42,12 @@ export class App implements OnInit {
 
   async ngOnInit() {
     if (isPlatformBrowser(this.platformId)) {
-      const api = (window as any).electronAPI;
-      if (api) {
+      if (this.api) {
         // Load persisted output path
-        const config = await api.getConfig();
+        const config = await this.api.getConfig();
         if (config.outputPath) {
           this.outputPath.set(config.outputPath);
+          this.api.log('INFO', `Loaded output path from config: ${config.outputPath}`);
         }
       }
     }
@@ -61,12 +61,12 @@ export class App implements OnInit {
   }
 
   async fetchVideoInfo() {
-    console.log('[ANGULAR] fetchVideoInfo called');
     if (!this.url() || !this.api) {
-      console.warn('[ANGULAR] URL or API missing');
+      if (this.api) this.api.log('WARN', 'fetchVideoInfo called but URL is empty');
       return;
     }
 
+    this.api.log('INFO', `Requesting info for URL: ${this.url()}`);
     this.isFetchingInfo.set(true);
     this.status.set('Fetching video information...');
     this.videoInfo.set(null);
@@ -76,46 +76,50 @@ export class App implements OnInit {
       this.isFetchingInfo.set(false);
 
       if (result.success) {
+        this.api.log('INFO', `Successfully fetched info for: ${result.title}`);
         this.videoInfo.set(result);
         this.status.set('');
         if (result.formats && result.formats.length > 0) {
           this.selectedFormatId.set(result.formats[0].id);
         }
       } else {
+        this.api.log('ERROR', `Failed to fetch video info: ${result.error}`);
         this.status.set(`Error: ${result.error}`);
       }
     } catch (err: any) {
-      console.error('[ANGULAR] Error in fetchVideoInfo:', err);
+      this.api.log('ERROR', 'Critical error in fetchVideoInfo', err.message);
       this.isFetchingInfo.set(false);
       this.status.set(`Critical Error: ${err.message}`);
     }
   }
 
   async selectDirectory() {
-    console.log('[ANGULAR] selectDirectory clicked');
-    if (!this.api) {
-      console.error('[ANGULAR] API not found');
-      return;
-    }
+    if (!this.api) return;
+    
+    this.api.log('DEBUG', 'Opening directory selector');
     try {
       const path = await this.api.selectDirectory();
-      console.log('[ANGULAR] selectDirectory result:', path);
       if (path) {
+        this.api.log('INFO', `Directory selected: ${path}`);
         this.outputPath.set(path);
         // Persist path
         await this.api.setConfig({ outputPath: path });
+      } else {
+        this.api.log('DEBUG', 'Directory selection cancelled');
       }
     } catch (err: any) {
-      console.error('[ANGULAR] Error in selectDirectory:', err);
+      this.api.log('ERROR', 'Error in selectDirectory', err.message);
     }
   }
 
   async download() {
     if (!this.url() || !this.outputPath() || !this.api) {
       this.status.set('Please provide a URL and select an output path.');
+      if (this.api) this.api.log('WARN', 'Download attempted with missing URL or output path');
       return;
     }
 
+    this.api.log('INFO', `Starting download: ${this.url()} to ${this.outputPath()} (Format: ${this.selectedFormatId()})`);
     this.isDownloading.set(true);
     this.status.set('Download started...');
     this.progress.set({ percent: 0, speed: '', eta: '', totalSize: '' });
@@ -128,11 +132,14 @@ export class App implements OnInit {
       });
 
       if (result.success) {
+        this.api.log('INFO', 'Download finished successfully');
         this.status.set('Download completed successfully!');
       } else {
+        this.api.log('ERROR', `Download failed: ${result.error}`);
         this.status.set(`Error: ${result.error}`);
       }
     } catch (err: any) {
+      this.api.log('ERROR', 'Critical error in download', err.message);
       this.status.set(`Critical Error: ${err.message}`);
     } finally {
       this.isDownloading.set(false);
