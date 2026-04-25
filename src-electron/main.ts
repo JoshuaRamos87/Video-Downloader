@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, dialog } from 'electron';
+import { app, BrowserWindow, ipcMain, dialog, clipboard } from 'electron';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import youtubeDl from 'youtube-dl-exec';
@@ -115,6 +115,10 @@ ipcMain.handle('set-config', async (_event, config: AppConfig): Promise<void> =>
 ipcMain.on('log-message', (_event, { level, message, args }: { level: any, message: string, args: any[] }) => {
   const logMethod = (logger as any)[level.toLowerCase()] || logger.info;
   logMethod.call(logger, `[UI] ${message}`, ...args);
+});
+
+ipcMain.handle('read-clipboard', async (): Promise<string> => {
+  return clipboard.readText();
 });
 
 ipcMain.handle('select-directory', async (): Promise<string | null> => {

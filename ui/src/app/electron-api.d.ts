@@ -36,6 +36,7 @@ export interface ElectronAPI {
   setConfig: (config: AppConfig) => Promise<void>;
   selectDirectory: () => Promise<string | null>;
   getVideoInfo: (url: string) => Promise<VideoInfoResponse>;
+  readClipboard: () => Promise<string>;
   downloadVideo: (data: DownloadRequest) => Promise<{ success: boolean; error?: string }>;
   onDownloadProgress: (callback: (progress: DownloadProgress) => void) => void;
 }
