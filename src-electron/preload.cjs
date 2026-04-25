@@ -19,6 +19,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
     console.log('[PRELOAD] getVideoInfo called');
     return ipcRenderer.invoke('get-video-info', url);
   },
+  readClipboard: () => {
+    console.log('[PRELOAD] readClipboard called');
+    return ipcRenderer.invoke('read-clipboard');
+  },
   downloadVideo: (data) => {
     console.log('[PRELOAD] downloadVideo called');
     return ipcRenderer.invoke('download-video', data);

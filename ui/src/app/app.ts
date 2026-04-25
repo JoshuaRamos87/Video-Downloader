@@ -1,4 +1,4 @@
-import { Component, signal, OnInit, Inject, PLATFORM_ID } from '@angular/core';
+import { Component, signal, OnInit, Inject, PLATFORM_ID, HostListener } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 
@@ -31,6 +31,27 @@ export class App implements OnInit {
     eta: '',
     totalSize: ''
   });
+
+  @HostListener('window:focus')
+  async onWindowFocus() {
+    if (this.api && !this.isDownloading() && !this.isFetchingInfo()) {
+      try {
+        const clipboardText = await this.api.readClipboard();
+        if (clipboardText) {
+          const trimmedText = clipboardText.trim();
+          // Regex to check for a basic YouTube URL (including shorts)
+          const isYouTubeUrl = /^(https?:\/\/)?(www\.)?(youtube\.com\/(watch\?v=|shorts\/)|youtu\.be\/)[a-zA-Z0-9_-]{11}/.test(trimmedText);
+
+          if (isYouTubeUrl && this.url() !== trimmedText) {
+            this.api.log('INFO', 'Auto-filling valid YouTube URL from clipboard on focus');
+            this.url.set(trimmedText);
+          }
+        }
+      } catch (err: any) {
+        this.api.log('WARN', `Failed to read clipboard on focus: ${err.message}`);
+      }
+    }
+  }
 
   constructor(@Inject(PLATFORM_ID) private platformId: Object) {
     if (isPlatformBrowser(this.platformId)) {
