@@ -61,33 +61,52 @@ export class App implements OnInit {
   }
 
   async fetchVideoInfo() {
-    if (!this.url() || !this.api) return;
+    console.log('[ANGULAR] fetchVideoInfo called');
+    if (!this.url() || !this.api) {
+      console.warn('[ANGULAR] URL or API missing');
+      return;
+    }
 
     this.isFetchingInfo.set(true);
     this.status.set('Fetching video information...');
     this.videoInfo.set(null);
 
-    const result = await this.api.getVideoInfo(this.url());
-    this.isFetchingInfo.set(false);
+    try {
+      const result = await this.api.getVideoInfo(this.url());
+      this.isFetchingInfo.set(false);
 
-    if (result.success) {
-      this.videoInfo.set(result);
-      this.status.set('');
-      if (result.formats && result.formats.length > 0) {
-        this.selectedFormatId.set(result.formats[0].id);
+      if (result.success) {
+        this.videoInfo.set(result);
+        this.status.set('');
+        if (result.formats && result.formats.length > 0) {
+          this.selectedFormatId.set(result.formats[0].id);
+        }
+      } else {
+        this.status.set(`Error: ${result.error}`);
       }
-    } else {
-      this.status.set(`Error: ${result.error}`);
+    } catch (err: any) {
+      console.error('[ANGULAR] Error in fetchVideoInfo:', err);
+      this.isFetchingInfo.set(false);
+      this.status.set(`Critical Error: ${err.message}`);
     }
   }
 
   async selectDirectory() {
-    if (!this.api) return;
-    const path = await this.api.selectDirectory();
-    if (path) {
-      this.outputPath.set(path);
-      // Persist path
-      await this.api.setConfig({ outputPath: path });
+    console.log('[ANGULAR] selectDirectory clicked');
+    if (!this.api) {
+      console.error('[ANGULAR] API not found');
+      return;
+    }
+    try {
+      const path = await this.api.selectDirectory();
+      console.log('[ANGULAR] selectDirectory result:', path);
+      if (path) {
+        this.outputPath.set(path);
+        // Persist path
+        await this.api.setConfig({ outputPath: path });
+      }
+    } catch (err: any) {
+      console.error('[ANGULAR] Error in selectDirectory:', err);
     }
   }
 

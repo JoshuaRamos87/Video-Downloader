@@ -4,12 +4,18 @@ ui/node_modules/
 
 # Build outputs
 dist/
+dist-electron/
 ui/dist/
 *.exe
 *.dmg
 *.app
 *.deb
 *.rpm
+
+# Apps / Config
+config.json
+.parcel-cache/
+.cache/
 
 # IDEs and Editors
 .vscode/
