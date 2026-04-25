@@ -20,6 +20,10 @@ export class App implements OnInit {
   videoInfo = signal<any>(null);
   selectedFormatId = signal('');
 
+  // Filters
+  selectedExtension = signal<string>('All');
+  selectedResolution = signal<string>('All');
+
   // Progress Info
   progress = signal({
     percent: 0,
@@ -78,6 +82,8 @@ export class App implements OnInit {
       if (result.success) {
         this.api.log('INFO', `Successfully fetched info for: ${result.title}`);
         this.videoInfo.set(result);
+        this.selectedExtension.set('All');
+        this.selectedResolution.set('All');
         this.status.set('');
         if (result.formats && result.formats.length > 0) {
           this.selectedFormatId.set(result.formats[0].id);
@@ -143,6 +149,53 @@ export class App implements OnInit {
       this.status.set(`Critical Error: ${err.message}`);
     } finally {
       this.isDownloading.set(false);
+    }
+  }
+
+  get availableExtensions(): string[] {
+    const info = this.videoInfo();
+    if (!info || !info.formats) return ['All'];
+    const exts = new Set<string>();
+    info.formats.forEach((f: any) => exts.add(f.ext));
+    return ['All', ...Array.from(exts).sort()];
+  }
+
+  get availableResolutions(): string[] {
+    const info = this.videoInfo();
+    if (!info || !info.formats) return ['All'];
+    const res = new Set<string>();
+    info.formats.forEach((f: any) => res.add(f.resolution));
+    return ['All', ...Array.from(res).sort((a, b) => {
+      // Basic sorting for resolutions like 1080p, 720p, etc.
+      const numA = parseInt(a) || 0;
+      const numB = parseInt(b) || 0;
+      return numB - numA;
+    })];
+  }
+
+  get filteredFormats(): any[] {
+    const info = this.videoInfo();
+    if (!info || !info.formats) return [];
+
+    const ext = this.selectedExtension();
+    const res = this.selectedResolution();
+
+    return info.formats.filter((f: any) => {
+      const matchExt = ext === 'All' || f.ext === ext;
+      const matchRes = res === 'All' || f.resolution === res;
+      return matchExt && matchRes;
+    });
+  }
+
+  onFilterChange() {
+    const formats = this.filteredFormats;
+    if (formats.length > 0) {
+      // If selected format is not in the filtered list, select the first one
+      if (!formats.find(f => f.id === this.selectedFormatId())) {
+        this.selectedFormatId.set(formats[0].id);
+      }
+    } else {
+      this.selectedFormatId.set('');
     }
   }
 

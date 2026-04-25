@@ -22,12 +22,40 @@
       <img [src]="videoInfo().thumbnail" alt="Thumbnail" class="thumbnail">
       <div class="video-details">
         <h3>{{ videoInfo().title }}</h3>
-        <label for="format">Select Format:</label>
-        <select id="format" [(ngModel)]="selectedFormatId" [disabled]="isDownloading()">
-          <option *ngFor="let f of videoInfo().formats" [value]="f.id">
-            {{ f.resolution }} - {{ f.ext.toUpperCase() }} ({{ formatBytes(f.filesize) }}) {{ f.note }}
-          </option>
-        </select>
+
+        <div class="filters">
+          <div class="filter-group">
+            <label for="extFilter">Extension:</label>
+            <select id="extFilter" [ngModel]="selectedExtension()" (ngModelChange)="selectedExtension.set($event); onFilterChange()" [disabled]="isDownloading()">
+              <option *ngFor="let ext of availableExtensions" [value]="ext">{{ ext === 'All' ? 'All' : ext.toUpperCase() }}</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label for="resFilter">Resolution:</label>
+            <select id="resFilter" [ngModel]="selectedResolution()" (ngModelChange)="selectedResolution.set($event); onFilterChange()" [disabled]="isDownloading()">
+              <option *ngFor="let res of availableResolutions" [value]="res">{{ res }}</option>
+            </select>
+          </div>
+        </div>
+
+        <div *ngIf="filteredFormats.length > 1; else singleFormat">
+          <label for="format">Select Format ({{ filteredFormats.length }} options):</label>
+          <select id="format" [(ngModel)]="selectedFormatId" [disabled]="isDownloading()">
+            <option *ngFor="let f of filteredFormats" [value]="f.id">
+              {{ f.resolution }} - {{ f.ext.toUpperCase() }} ({{ formatBytes(f.filesize) }}) {{ f.note }}
+            </option>
+          </select>
+        </div>
+        <ng-template #singleFormat>
+          <div class="single-format-message" *ngIf="filteredFormats.length === 1">
+            <p>✅ Only one format matches your filters! Ready to download.</p>
+            <small>{{ filteredFormats[0].resolution }} - {{ filteredFormats[0].ext.toUpperCase() }} ({{ formatBytes(filteredFormats[0].filesize) }})</small>
+          </div>
+          <div class="single-format-message error" *ngIf="filteredFormats.length === 0">
+            <p>❌ No formats match your filters.</p>
+          </div>
+        </ng-template>
+
       </div>
     </div>
   </div>
