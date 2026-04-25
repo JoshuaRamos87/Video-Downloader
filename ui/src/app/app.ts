@@ -15,6 +15,8 @@ export class App implements OnInit {
   status = signal('');
   isDownloading = signal(false);
   isFetchingInfo = signal(false);
+  toastMessage = signal('');
+  private toastTimeout: any;
 
   // Video Info
   videoInfo = signal<any>(null);
@@ -45,6 +47,7 @@ export class App implements OnInit {
           if (isYouTubeUrl && this.url() !== trimmedText) {
             this.api.log('INFO', 'Auto-filling valid YouTube URL from clipboard on focus');
             this.url.set(trimmedText);
+            this.showToast('Auto-filled YouTube link from clipboard!');
           }
         }
       } catch (err: any) {
@@ -179,6 +182,16 @@ export class App implements OnInit {
     const exts = new Set<string>();
     info.formats.forEach((f: any) => exts.add(f.ext));
     return ['All', ...Array.from(exts).sort()];
+  }
+
+  showToast(message: string) {
+    this.toastMessage.set(message);
+    if (this.toastTimeout) {
+      clearTimeout(this.toastTimeout);
+    }
+    this.toastTimeout = setTimeout(() => {
+      this.toastMessage.set('');
+    }, 3000);
   }
 
   get availableResolutions(): string[] {

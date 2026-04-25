@@ -77,3 +77,8 @@
 
   <p class="status" [ngClass]="{'error': status().startsWith('Error')}">{{ status() }}</p>
 </div>
+
+<!-- Toast Notification -->
+<div class="toast" [class.show]="toastMessage()">
+  {{ toastMessage() }}
+</div>
