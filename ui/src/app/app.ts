@@ -63,8 +63,8 @@ export class App implements OnInit {
         this.api.log('DEBUG', `Clipboard content on focus: ${clipboardText ? 'length ' + clipboardText.length : 'empty'}`);
         if (clipboardText) {
           const trimmedText = clipboardText.trim();
-          // Regex to check for a basic video URL (including shorts)
-          const isVideoUrl = /^(https?:\/\/)?(www\.)?(youtube\.com\/(watch\?v=|shorts\/)|youtu\.be\/)[a-zA-Z0-9_-]{11}/.test(trimmedText);
+          // Regex to check for a basic video URL (including YouTube and Twitter/X)
+          const isVideoUrl = /^(https?:\/\/)?(www\.)?((youtube\.com\/(watch\?v=|shorts\/)|youtu\.be\/)[a-zA-Z0-9_-]{11}|(twitter\.com|x\.com)\/.*\/status\/\d+)/.test(trimmedText);
 
           if (isVideoUrl) {
             this.ngZone.run(() => {

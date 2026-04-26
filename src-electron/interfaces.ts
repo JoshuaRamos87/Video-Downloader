@@ -35,3 +35,8 @@ export interface DownloadResult {
   success: boolean;
   error?: string;
 }
+
+export interface BaseDownloader {
+  getVideoInfo(url: string): Promise<VideoInfoResponse>;
+  downloadVideo(request: DownloadRequest, onProgress: (progress: DownloadProgress) => void): Promise<DownloadResult>;
+}
