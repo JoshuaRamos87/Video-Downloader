@@ -86,10 +86,14 @@ function createWindow(): void {
   logger.info(`Creating window. isDev: ${isDev}`);
   logger.info(`Preload path: ${preloadPath}`);
 
+  const iconPath = path.join(__dirname, '..', 'ui', 'public', 'favicon.ico');
+  logger.info(`Icon path: ${iconPath}`);
+
   win = new BrowserWindow({
     width: 1100,
     height: 900,
     frame: false,
+    icon: iconPath,
     webPreferences: {
       preload: preloadPath,
       contextIsolation: true,
@@ -176,7 +180,7 @@ ipcMain.handle('get-video-info', async (_event, url: string): Promise<VideoInfoR
   try {
     const videoIdMatch = url.match(/(?:v=|\/)([0-9A-Za-z_-]{11}).*/);
     const videoId = videoIdMatch ? videoIdMatch[1] : null;
-    if (!videoId) throw new Error('Invalid YouTube URL');
+    if (!videoId) throw new Error('Invalid video URL');
 
     let allFormats: any[] = [];
     let title = 'Unknown Title';

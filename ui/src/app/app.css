@@ -631,9 +631,20 @@ button:disabled {
 }
 
 .titlebar-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   font-size: 12px;
   font-weight: 500;
+  color: var(--text-main);
+  opacity: 0.9;
 }
+
+.app-icon {
+  margin-top: -1px;
+}
+
 
 .titlebar-controls {
   display: flex;

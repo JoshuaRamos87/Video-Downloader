@@ -1,16 +1,16 @@
-# YouTube Downloader Implementation Details
+# Video Downloader Implementation Details
 
-This document outlines the high-resilience architecture used to bypass YouTube's anti-bot measures and ensure stable metadata retrieval and downloading.
+This document outlines the high-resilience architecture used to bypass anti-bot measures and ensure stable metadata retrieval and downloading.
 
 ## 1. The Metadata Challenge
-Standard tools like `yt-dlp` often fail during the "Analysis" phase (JSON dumping) because YouTube detects the automated request and returns a `403 Forbidden` or empty data. 
+Standard tools like `yt-dlp` often fail during the "Analysis" phase (JSON dumping) because the platform detects the automated request and returns a `403 Forbidden` or empty data. 
 
 ## 2. The "Hybrid" Architecture
 We solve this by separating the **Retrieval** from the **Execution**.
 
 ### Phase A: Resilient Analysis (youtubei.js)
 Instead of asking `yt-dlp` for video info, we use `youtubei.js` (Innertube).
-- **Mechanism:** It mimics internal YouTube API calls (from Android/iOS/Web clients).
+- **Mechanism:** It mimics internal API calls (from Android/iOS/Web clients).
 - **Metadata:** Fetches Title, Thumbnails, and `streaming_data`.
 - **Formats:** We extract the `itag` list from `streaming_data.adaptive_formats` and `streaming_data.formats`. This provides us with resolution labels, extensions, and exact file sizes without triggering bot detection.
 

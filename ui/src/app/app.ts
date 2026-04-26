@@ -63,18 +63,18 @@ export class App implements OnInit {
         this.api.log('DEBUG', `Clipboard content on focus: ${clipboardText ? 'length ' + clipboardText.length : 'empty'}`);
         if (clipboardText) {
           const trimmedText = clipboardText.trim();
-          // Regex to check for a basic YouTube URL (including shorts)
-          const isYouTubeUrl = /^(https?:\/\/)?(www\.)?(youtube\.com\/(watch\?v=|shorts\/)|youtu\.be\/)[a-zA-Z0-9_-]{11}/.test(trimmedText);
+          // Regex to check for a basic video URL (including shorts)
+          const isVideoUrl = /^(https?:\/\/)?(www\.)?(youtube\.com\/(watch\?v=|shorts\/)|youtu\.be\/)[a-zA-Z0-9_-]{11}/.test(trimmedText);
 
-          if (isYouTubeUrl) {
+          if (isVideoUrl) {
             this.ngZone.run(() => {
               if (this.url() !== trimmedText) {
-                this.api.log('INFO', 'Auto-filling valid YouTube URL from clipboard on focus');
+                this.api.log('INFO', 'Auto-filling valid video URL from clipboard on focus');
                 this.url.set(trimmedText);
-                this.showToast('Auto-filled YouTube link from clipboard!');
+                this.showToast('Auto-filled link from clipboard!');
               } else {
                 this.api.log('DEBUG', 'URL already set, showing reminder toast');
-                this.showToast('YouTube link already in input!');
+                this.showToast('Link already in input!');
               }
             });
           }

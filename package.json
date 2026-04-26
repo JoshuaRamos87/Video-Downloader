@@ -1,7 +1,7 @@
 {
-  "name": "youtube-downloader-electron",
+  "name": "video-downloader-electron",
   "version": "1.0.0",
-  "description": "Simple YouTube Downloader using Electron and Angular",
+  "description": "Simple Video Downloader using Electron and Angular",
   "main": "dist-electron/main.js",
   "type": "module",
   "scripts": {
