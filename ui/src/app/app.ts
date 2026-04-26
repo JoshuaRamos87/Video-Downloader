@@ -1,4 +1,4 @@
-import { Component, signal, OnInit, Inject, PLATFORM_ID, HostListener, NgZone } from '@angular/core';
+import { Component, signal, computed, OnInit, Inject, PLATFORM_ID, HostListener, NgZone, HostBinding } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 
@@ -10,12 +10,22 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
   styleUrl: './app.css'
 })
 export class App implements OnInit {
+  @HostBinding('class') get hostClass() {
+    return this.themeClass();
+  }
+
   url = signal('');
   outputPath = signal('');
   status = signal('');
   isDownloading = signal(false);
   isFetchingInfo = signal(false);
   toastMessage = signal('');
+
+  // Settings and Theme State
+  isSettingsOpen = signal(false);
+  settingsView = signal<'main' | 'themes'>('main');
+  selectedTheme = signal<string>('system'); // 'system', 'dark', 'light', 'sepia', 'dracula', 'nord'
+  osTheme = signal<string>('light');
   private toastTimeout: any;
 
   // Video Info
@@ -32,6 +42,15 @@ export class App implements OnInit {
     speed: '',
     eta: '',
     totalSize: ''
+  });
+
+  // Computed theme class based on selection and OS setting
+  themeClass = computed(() => {
+    const theme = this.selectedTheme();
+    if (theme === 'system') {
+      return this.osTheme() === 'dark' ? 'theme-dark' : 'theme-light';
+    }
+    return `theme-${theme}`;
   });
 
   @HostListener('window:focus')
@@ -79,20 +98,35 @@ export class App implements OnInit {
           });
         });
       }
+
+      // Listen for OS theme changes
+      if (window.matchMedia) {
+        const mql = window.matchMedia('(prefers-color-scheme: dark)');
+        this.osTheme.set(mql.matches ? 'dark' : 'light');
+        mql.addEventListener('change', (e) => {
+          this.ngZone.run(() => {
+            this.osTheme.set(e.matches ? 'dark' : 'light');
+          });
+        });
+      }
     }
   }
 
   async ngOnInit() {
     if (isPlatformBrowser(this.platformId)) {
       if (this.api) {
-        // Load persisted output path
+        // Load persisted config
         const config = await this.api.getConfig();
-        if (config.outputPath) {
-          this.ngZone.run(() => {
+        this.ngZone.run(() => {
+          if (config.outputPath) {
             this.outputPath.set(config.outputPath);
             this.api.log('INFO', `Loaded output path from config: ${config.outputPath}`);
-          });
-        }
+          }
+          if (config.theme) {
+            this.selectedTheme.set(config.theme);
+            this.api.log('INFO', `Loaded theme from config: ${config.theme}`);
+          }
+        });
       }
     }
   }
@@ -102,6 +136,40 @@ export class App implements OnInit {
       return (window as any).electronAPI;
     }
     return null;
+  }
+
+  // Settings Navigation
+  toggleSettings() {
+    this.isSettingsOpen.update(v => !v);
+    if (!this.isSettingsOpen()) {
+      // Reset view when closing
+      setTimeout(() => this.settingsView.set('main'), 300);
+    }
+  }
+
+  openSubmenu(view: 'themes') {
+    this.settingsView.set(view);
+  }
+
+  goBack() {
+    this.settingsView.set('main');
+  }
+
+  getBreadcrumbs() {
+    switch(this.settingsView()) {
+      case 'themes': return 'Settings > Themes';
+      default: return 'Settings';
+    }
+  }
+
+  async selectTheme(theme: string) {
+    this.selectedTheme.set(theme);
+
+    if (this.api) {
+      const config = await this.api.getConfig();
+      await this.api.setConfig({ ...config, theme: theme });
+      this.api.log('INFO', `Saved theme preference: ${theme}`);
+    }
   }
 
   async fetchVideoInfo() {
@@ -154,7 +222,8 @@ export class App implements OnInit {
           this.api.log('INFO', `Directory selected: ${path}`);
           this.outputPath.set(path);
           // Persist path
-          await this.api.setConfig({ outputPath: path });
+          const config = await this.api.getConfig();
+          await this.api.setConfig({ ...config, outputPath: path });
         });
       } else {
         this.api.log('DEBUG', 'Directory selection cancelled');
