@@ -10,6 +10,12 @@ A sleek, desktop-based utility designed to streamline the process of archiving o
 - **Clean Interface:** Built with a modern, distraction-free UI designed for efficiency.
 - **Muxing Support:** Automatically handles the merging of high-quality video and audio streams into a single file.
 
+## Supported Services
+
+The application currently provides optimized support for:
+- **YouTube:** Full metadata retrieval, support for all quality levels, and high-speed downloading.
+- **Twitter / X:** Reliable media extraction from tweets, including support for various video resolutions.
+
 ## Technical Foundation
 
 The application uses a hybrid architecture to ensure reliability:
