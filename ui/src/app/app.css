@@ -237,8 +237,9 @@ button:disabled {
   font-size: 0.95rem;
   opacity: 0;
   transition: opacity 0.3s ease, transform 0.3s ease;
-  z-index: 1000;
+  z-index: 9999;
   pointer-events: none;
+  display: block;
 }
 
 .toast.show {

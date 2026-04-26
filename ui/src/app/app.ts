@@ -1,4 +1,4 @@
-import { Component, signal, OnInit, Inject, PLATFORM_ID, HostListener } from '@angular/core';
+import { Component, signal, OnInit, Inject, PLATFORM_ID, HostListener, NgZone } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 
@@ -35,19 +35,28 @@ export class App implements OnInit {
   });
 
   @HostListener('window:focus')
+  @HostListener('focus')
   async onWindowFocus() {
     if (this.api && !this.isDownloading() && !this.isFetchingInfo()) {
       try {
         const clipboardText = await this.api.readClipboard();
+        this.api.log('DEBUG', `Clipboard content on focus: ${clipboardText ? 'length ' + clipboardText.length : 'empty'}`);
         if (clipboardText) {
           const trimmedText = clipboardText.trim();
           // Regex to check for a basic YouTube URL (including shorts)
           const isYouTubeUrl = /^(https?:\/\/)?(www\.)?(youtube\.com\/(watch\?v=|shorts\/)|youtu\.be\/)[a-zA-Z0-9_-]{11}/.test(trimmedText);
 
-          if (isYouTubeUrl && this.url() !== trimmedText) {
-            this.api.log('INFO', 'Auto-filling valid YouTube URL from clipboard on focus');
-            this.url.set(trimmedText);
-            this.showToast('Auto-filled YouTube link from clipboard!');
+          if (isYouTubeUrl) {
+            this.ngZone.run(() => {
+              if (this.url() !== trimmedText) {
+                this.api.log('INFO', 'Auto-filling valid YouTube URL from clipboard on focus');
+                this.url.set(trimmedText);
+                this.showToast('Auto-filled YouTube link from clipboard!');
+              } else {
+                this.api.log('DEBUG', 'URL already set, showing reminder toast');
+                this.showToast('YouTube link already in input!');
+              }
+            });
           }
         }
       } catch (err: any) {
@@ -56,13 +65,18 @@ export class App implements OnInit {
     }
   }
 
-  constructor(@Inject(PLATFORM_ID) private platformId: Object) {
+  constructor(
+    @Inject(PLATFORM_ID) private platformId: Object,
+    private ngZone: NgZone
+  ) {
     if (isPlatformBrowser(this.platformId)) {
       const api = (window as any).electronAPI;
       if (api) {
         api.log('INFO', 'Angular app initialized and connected to Electron');
         api.onDownloadProgress((data: any) => {
-          this.progress.set(data);
+          this.ngZone.run(() => {
+            this.progress.set(data);
+          });
         });
       }
     }
@@ -74,8 +88,10 @@ export class App implements OnInit {
         // Load persisted output path
         const config = await this.api.getConfig();
         if (config.outputPath) {
-          this.outputPath.set(config.outputPath);
-          this.api.log('INFO', `Loaded output path from config: ${config.outputPath}`);
+          this.ngZone.run(() => {
+            this.outputPath.set(config.outputPath);
+            this.api.log('INFO', `Loaded output path from config: ${config.outputPath}`);
+          });
         }
       }
     }
@@ -101,25 +117,29 @@ export class App implements OnInit {
 
     try {
       const result = await this.api.getVideoInfo(this.url());
-      this.isFetchingInfo.set(false);
+      this.ngZone.run(() => {
+        this.isFetchingInfo.set(false);
 
-      if (result.success) {
-        this.api.log('INFO', `Successfully fetched info for: ${result.title}`);
-        this.videoInfo.set(result);
-        this.selectedExtension.set('All');
-        this.selectedResolution.set('All');
-        this.status.set('');
-        if (result.formats && result.formats.length > 0) {
-          this.selectedFormatId.set(result.formats[0].id);
+        if (result.success) {
+          this.api.log('INFO', `Successfully fetched info for: ${result.title}`);
+          this.videoInfo.set(result);
+          this.selectedExtension.set('All');
+          this.selectedResolution.set('All');
+          this.status.set('');
+          if (result.formats && result.formats.length > 0) {
+            this.selectedFormatId.set(result.formats[0].id);
+          }
+        } else {
+          this.api.log('ERROR', `Failed to fetch video info: ${result.error}`);
+          this.status.set(`Error: ${result.error}`);
         }
-      } else {
-        this.api.log('ERROR', `Failed to fetch video info: ${result.error}`);
-        this.status.set(`Error: ${result.error}`);
-      }
+      });
     } catch (err: any) {
-      this.api.log('ERROR', 'Critical error in fetchVideoInfo', err.message);
-      this.isFetchingInfo.set(false);
-      this.status.set(`Critical Error: ${err.message}`);
+      this.ngZone.run(() => {
+        this.api.log('ERROR', 'Critical error in fetchVideoInfo', err.message);
+        this.isFetchingInfo.set(false);
+        this.status.set(`Critical Error: ${err.message}`);
+      });
     }
   }
 
@@ -130,10 +150,12 @@ export class App implements OnInit {
     try {
       const path = await this.api.selectDirectory();
       if (path) {
-        this.api.log('INFO', `Directory selected: ${path}`);
-        this.outputPath.set(path);
-        // Persist path
-        await this.api.setConfig({ outputPath: path });
+        this.ngZone.run(async () => {
+          this.api.log('INFO', `Directory selected: ${path}`);
+          this.outputPath.set(path);
+          // Persist path
+          await this.api.setConfig({ outputPath: path });
+        });
       } else {
         this.api.log('DEBUG', 'Directory selection cancelled');
       }
@@ -161,18 +183,24 @@ export class App implements OnInit {
         formatId: this.selectedFormatId()
       });
 
-      if (result.success) {
-        this.api.log('INFO', 'Download finished successfully');
-        this.status.set('Download completed successfully!');
-      } else {
-        this.api.log('ERROR', `Download failed: ${result.error}`);
-        this.status.set(`Error: ${result.error}`);
-      }
+      this.ngZone.run(() => {
+        if (result.success) {
+          this.api.log('INFO', 'Download finished successfully');
+          this.status.set('Download completed successfully!');
+        } else {
+          this.api.log('ERROR', `Download failed: ${result.error}`);
+          this.status.set(`Error: ${result.error}`);
+        }
+      });
     } catch (err: any) {
-      this.api.log('ERROR', 'Critical error in download', err.message);
-      this.status.set(`Critical Error: ${err.message}`);
+      this.ngZone.run(() => {
+        this.api.log('ERROR', 'Critical error in download', err.message);
+        this.status.set(`Critical Error: ${err.message}`);
+      });
     } finally {
-      this.isDownloading.set(false);
+      this.ngZone.run(() => {
+        this.isDownloading.set(false);
+      });
     }
   }
 
@@ -185,12 +213,17 @@ export class App implements OnInit {
   }
 
   showToast(message: string) {
-    this.toastMessage.set(message);
+    this.api.log('DEBUG', `Showing toast: ${message}`);
+    this.ngZone.run(() => {
+      this.toastMessage.set(message);
+    });
     if (this.toastTimeout) {
       clearTimeout(this.toastTimeout);
     }
     this.toastTimeout = setTimeout(() => {
-      this.toastMessage.set('');
+      this.ngZone.run(() => {
+        this.toastMessage.set('');
+      });
     }, 3000);
   }
 

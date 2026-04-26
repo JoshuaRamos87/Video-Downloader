@@ -4,7 +4,7 @@
   <div class="input-group">
     <label for="url">YouTube URL:</label>
     <div class="row">
-      <input type="text" id="url" [(ngModel)]="url" placeholder="https://www.youtube.com/watch?v=..." [disabled]="isDownloading()">
+      <input type="text" id="url" [ngModel]="url()" (ngModelChange)="url.set($event)" placeholder="https://www.youtube.com/watch?v=..." [disabled]="isDownloading()">
       <button (click)="fetchVideoInfo()" [disabled]="isDownloading() || isFetchingInfo() || !url()">Analyze</button>
     </div>
   </div>
@@ -40,7 +40,7 @@
 
         <div *ngIf="filteredFormats.length > 1; else singleFormat">
           <label for="format">Select Format ({{ filteredFormats.length }} options):</label>
-          <select id="format" [(ngModel)]="selectedFormatId" [disabled]="isDownloading()">
+          <select id="format" [ngModel]="selectedFormatId()" (ngModelChange)="selectedFormatId.set($event)" [disabled]="isDownloading()">
             <option *ngFor="let f of filteredFormats" [value]="f.id">
               {{ f.resolution }} - {{ f.ext.toUpperCase() }} ({{ formatBytes(f.filesize) }}) {{ f.note }}
             </option>
@@ -76,9 +76,9 @@
   </button>
 
   <p class="status" [ngClass]="{'error': status().startsWith('Error')}">{{ status() }}</p>
-</div>
 
-<!-- Toast Notification -->
-<div class="toast" [class.show]="toastMessage()">
-  {{ toastMessage() }}
+  <!-- Toast Notification -->
+  <div class="toast" [class.show]="toastMessage()">
+    {{ toastMessage() }}
+  </div>
 </div>
