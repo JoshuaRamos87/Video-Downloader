@@ -67,6 +67,9 @@ export class TwitterDownloader implements BaseDownloader {
           
           if (variants.length > 0) {
             for (const v of variants) {
+              // Skip m3u8 playlists as they are not direct video files
+              if (v.url.includes('.m3u8')) continue;
+
               // Extract resolution from URL if missing in variant metadata
               // Pattern: .../vid/720x1280/file.mp4
               let resolution = 'Video';
