@@ -430,20 +430,13 @@ button:disabled {
 .header-wrapper {
   position: relative;
   display: flex;
-  justify-content: center;
+  justify-content: flex-end;
   align-items: center;
-  margin-bottom: 2rem;
-}
-
-.header-wrapper h1 {
-  margin-bottom: 0;
+  margin-bottom: 1rem;
+  height: 40px;
 }
 
 .settings-btn {
-  position: absolute;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
   background: none;
   border: none;
   color: var(--text-muted);
@@ -452,6 +445,7 @@ button:disabled {
   display: flex;
   justify-content: center;
   align-items: center;
+  transition: all 0.2s;
 }
 
 .settings-btn:hover {
