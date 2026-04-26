@@ -92,6 +92,8 @@ function createWindow(): void {
   win = new BrowserWindow({
     width: 1100,
     height: 900,
+    minWidth: 800,
+    minHeight: 600,
     frame: false,
     icon: iconPath,
     webPreferences: {
