@@ -28,7 +28,7 @@
         "portable",
         "zip"
       ],
-      "icon": "ui/public/app-icon.ico"
+      "icon": "ui/public/favicon.ico"
     }
   },
   "dependencies": {
