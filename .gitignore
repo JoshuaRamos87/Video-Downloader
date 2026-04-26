@@ -11,6 +11,7 @@ ui/dist/
 *.app
 *.deb
 *.rpm
+release/
 
 # Apps / Config
 config.json
