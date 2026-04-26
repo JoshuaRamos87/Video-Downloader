@@ -394,6 +394,16 @@ button:disabled {
   color: var(--accent-error);
 }
 
+.status.success {
+  color: var(--accent-success);
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.status.success:hover {
+  opacity: 0.8;
+}
+
 /* Toast Notification Styles */
 .toast {
   position: fixed;

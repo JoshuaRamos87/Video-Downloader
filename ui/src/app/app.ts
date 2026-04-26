@@ -18,6 +18,7 @@ export class App implements OnInit {
   outputPath = signal('');
   status = signal('');
   isDownloading = signal(false);
+  isSuccess = signal(false);
   isFetchingInfo = signal(false);
   toastMessage = signal('');
 
@@ -242,6 +243,7 @@ export class App implements OnInit {
 
     this.api.log('INFO', `Starting download: ${this.url()} to ${this.outputPath()} (Format: ${this.selectedFormatId()})`);
     this.isDownloading.set(true);
+    this.isSuccess.set(false);
     this.status.set('Download started...');
     this.progress.set({ percent: 0, speed: '', eta: '', totalSize: '' });
 
@@ -255,7 +257,8 @@ export class App implements OnInit {
       this.ngZone.run(() => {
         if (result.success) {
           this.api.log('INFO', 'Download finished successfully');
-          this.status.set('Download completed successfully!');
+          this.status.set('Download completed successfully! Click here to open folder.');
+          this.isSuccess.set(true);
         } else {
           this.api.log('ERROR', `Download failed: ${result.error}`);
           this.status.set(`Error: ${result.error}`);
@@ -270,6 +273,12 @@ export class App implements OnInit {
       this.ngZone.run(() => {
         this.isDownloading.set(false);
       });
+    }
+  }
+
+  openFolder() {
+    if (this.api && this.outputPath()) {
+      this.api.openPath(this.outputPath());
     }
   }
 

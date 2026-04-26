@@ -152,7 +152,11 @@
     {{ isDownloading() ? 'Downloading...' : 'Download' }}
   </button>
 
-  <p class="status" [ngClass]="{'error': status().startsWith('Error')}">{{ status() }}</p>
+  <p class="status" 
+     [ngClass]="{'error': status().startsWith('Error'), 'success': isSuccess()}" 
+     (click)="isSuccess() && openFolder()">
+    {{ status() }}
+  </p>
 
   <!-- Toast Notification -->
   <div class="toast" [class.show]="toastMessage()">

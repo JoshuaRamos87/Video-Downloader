@@ -1,4 +1,21 @@
-import { app, BrowserWindow, ipcMain, dialog, clipboard } from 'electron';
+import { app, BrowserWindow, ipcMain, dialog, clipboard, shell } from 'electron';
+
+// ... (keep existing imports)
+
+ipcMain.handle('open-path', async (_event, fullPath: string): Promise<void> => {
+  try {
+    if (fs.existsSync(fullPath)) {
+      const stats = fs.statSync(fullPath);
+      if (stats.isDirectory()) {
+        shell.openPath(fullPath);
+      } else {
+        shell.showItemInFolder(fullPath);
+      }
+    }
+  } catch (error: any) {
+    logger.error(`Error opening path ${fullPath}: ${error.message}`);
+  }
+});
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import youtubeDl from 'youtube-dl-exec';
