@@ -99,7 +99,9 @@
     </div>
   </div>
 
-  <div *ngIf="videoInfo()" class="video-info">
+  <div *ngIf="videoInfo()">
+    <span class="section-title">Video details:</span>
+    <div class="video-info">
     <div class="video-header">
       <img [src]="videoInfo().thumbnail" alt="Thumbnail" class="thumbnail">
       <div class="video-details">
@@ -141,6 +143,7 @@
       </div>
     </div>
   </div>
+</div>
 
   <div *ngIf="isDownloading()" class="progress-section">
     <div class="progress-bar-container">

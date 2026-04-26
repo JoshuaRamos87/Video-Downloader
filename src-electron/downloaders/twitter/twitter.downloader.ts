@@ -20,89 +20,115 @@ export class TwitterDownloader implements BaseDownloader {
     return null;
   }
 
+  private async getFileSize(url: string): Promise<number> {
+    return new Promise((resolve) => {
+      const getHead = (targetUrl: string) => {
+        const req = https.request(targetUrl, { method: 'HEAD' }, (res) => {
+          if ([301, 302, 307, 308].includes(res.statusCode || 0)) {
+            const redirectUrl = res.headers.location;
+            if (redirectUrl) {
+              getHead(redirectUrl);
+              return;
+            }
+          }
+          const size = parseInt(res.headers['content-length'] || '0');
+          resolve(size);
+        });
+        req.on('error', () => resolve(0));
+        req.end();
+      };
+      getHead(url);
+    });
+  }
+
   async getVideoInfo(url: string): Promise<VideoInfoResponse> {
     logger.info(`TwitterDownloader: Fetching info via FxTwitter for: ${url}`);
     try {
       const tweetInfo = this.extractTweetInfo(url);
       if (!tweetInfo) {
-        throw new Error('Invalid Twitter/X URL format. Expected: https://x.com/user/status/id');
+        throw new Error('Invalid Twitter/X URL format.');
       }
 
-      // Using FxTwitter API as it typically provides all variants/resolutions
       const apiUrl = `https://api.fxtwitter.com/${tweetInfo.handle}/status/${tweetInfo.id}`;
-      logger.debug(`Fetching FxTwitter API: ${apiUrl}`);
-
       const response = await fetch(apiUrl);
-      if (!response.ok) {
-        throw new Error(`FxTwitter API returned status ${response.status}`);
-      }
+      if (!response.ok) throw new Error(`FxTwitter API status ${response.status}`);
 
       const data: any = await response.json();
-      if (!data || !data.tweet || !data.tweet.media) {
-        throw new Error('No media found in this tweet.');
-      }
+      if (!data?.tweet?.media) throw new Error('No media found.');
 
       const tweet = data.tweet;
       const media = tweet.media;
-      
-      // FxTwitter usually provides an array of videos, and each video might have multiple variants
       let allFormats: VideoFormat[] = [];
 
       if (media.videos && Array.isArray(media.videos)) {
-        media.videos.forEach((video: any, videoIndex: number) => {
-          // If the API provides variants directly (FixTweet schema)
-          if (video.variants && Array.isArray(video.variants)) {
-            video.variants.forEach((v: any) => {
+        // Flatten all video variants into a single format list
+        for (const video of media.videos) {
+          const variants = video.variants || [];
+          
+          if (variants.length > 0) {
+            for (const v of variants) {
+              // Extract resolution from URL if missing in variant metadata
+              // Pattern: .../vid/720x1280/file.mp4
+              let resolution = 'Video';
+              const resMatch = v.url.match(/vid\/(\d+x\d+)\//);
+              if (resMatch) {
+                resolution = resMatch[1];
+              } else if (video.width && video.height) {
+                resolution = `${video.width}x${video.height}`;
+              }
+
+              // Only fetch file sizes for a reasonable number of variants to avoid slowing down UI
+              // But for Twitter, there are usually only 3-4 variants total.
+              const filesize = await this.getFileSize(v.url);
+
               allFormats.push({
                 id: v.url,
-                ext: v.url.split('.').pop()?.split('?')[0] || 'mp4',
-                resolution: v.width && v.height ? `${v.width}x${v.height}` : 'Video',
-                filesize: 0,
-                note: v.bitrate ? `Bitrate: ${(v.bitrate / 1000).toFixed(0)}kbps` : ''
+                ext: 'mp4',
+                resolution: resolution,
+                filesize: filesize,
+                note: v.bitrate ? `${(v.bitrate / 1000).toFixed(0)} kbps` : ''
               });
-            });
-          } else {
-            // Fallback if variants are flat in the video object
+            }
+          } else if (video.url) {
+            // Single video fallback
+            const filesize = await this.getFileSize(video.url);
             allFormats.push({
               id: video.url,
-              ext: video.url.split('.').pop()?.split('?')[0] || 'mp4',
+              ext: 'mp4',
               resolution: video.width && video.height ? `${video.width}x${video.height}` : 'Best Quality',
-              filesize: 0,
-              note: `Video ${videoIndex + 1}`
+              filesize: filesize,
+              note: 'Standard Quality'
             });
           }
-        });
+        }
       }
 
-      if (allFormats.length === 0) {
-        throw new Error('No video formats found for this tweet.');
-      }
+      if (allFormats.length === 0) throw new Error('No video formats found.');
 
-      // Sort by resolution (width * height) descending
+      // Remove duplicates and sort
+      allFormats = allFormats.filter((v, i, a) => a.findIndex(t => t.id === v.id) === i);
       allFormats.sort((a, b) => {
-        const getResValue = (res: string) => {
+        const getVal = (res: string) => {
           const m = res.match(/(\d+)x(\d+)/);
           return m ? parseInt(m[1]) * parseInt(m[2]) : 0;
         };
-        return getResValue(b.resolution) - getResValue(a.resolution);
+        return getVal(b.resolution) - getVal(a.resolution);
       });
 
       return {
         success: true,
-        title: `${tweet.author?.name || 'Twitter User'} (@${tweet.author?.screen_name || ''}): ${tweet.text?.substring(0, 50)}${tweet.text?.length > 50 ? '...' : ''}`,
+        title: `${tweet.author?.name || 'User'} (@${tweet.author?.screen_name || ''}): ${tweet.text?.substring(0, 50)}...`,
         thumbnail: media.videos[0]?.thumbnail_url || media.photos?.[0]?.url || '',
         formats: allFormats
       };
     } catch (error: any) {
-      logger.error(`Error in TwitterDownloader.getVideoInfo: ${error.message}`);
-      // Fallback to simpler VxTwitter if FxTwitter fails or schema is different
+      logger.error(`TwitterDownloader Error: ${error.message}`);
       return this.getVideoInfoVx(url);
     }
   }
 
-  // Fallback downloader using VxTwitter which we know worked but only had one resolution
   private async getVideoInfoVx(url: string): Promise<VideoInfoResponse> {
-    logger.info(`TwitterDownloader: Falling back to VxTwitter for: ${url}`);
+    logger.info(`TwitterDownloader: Falling back to VxTwitter`);
     try {
       const tweetInfo = this.extractTweetInfo(url);
       if (!tweetInfo) throw new Error('Invalid URL');
@@ -112,13 +138,18 @@ export class TwitterDownloader implements BaseDownloader {
       const data: any = await response.json();
 
       const videoMedia = data.media_extended.filter((m: any) => m.type === 'video' || m.type === 'gif');
-      const formats: VideoFormat[] = videoMedia.map((m: any) => ({
-        id: m.url,
-        ext: m.url.split('.').pop()?.split('?')[0] || 'mp4',
-        resolution: m.size ? `${m.size.width}x${m.size.height}` : 'Best Quality',
-        filesize: 0,
-        note: 'VxTwitter (Best Quality)'
-      }));
+      const formats: VideoFormat[] = [];
+      
+      for (const m of videoMedia) {
+        const filesize = await this.getFileSize(m.url);
+        formats.push({
+          id: m.url,
+          ext: 'mp4',
+          resolution: m.size ? `${m.size.width}x${m.size.height}` : 'Best Quality',
+          filesize: filesize,
+          note: 'Best Quality'
+        });
+      }
 
       return {
         success: true,
@@ -135,12 +166,10 @@ export class TwitterDownloader implements BaseDownloader {
     const { url, outputPath, formatId } = request;
     const downloadUrl = formatId || url;
     
-    logger.info(`TwitterDownloader: Starting download from: ${downloadUrl}`);
-
     return new Promise((resolve) => {
       const download = (targetUrl: string) => {
         https.get(targetUrl, (res) => {
-          if (res.statusCode === 301 || res.statusCode === 302 || res.statusCode === 307 || res.statusCode === 308) {
+          if ([301, 302, 307, 308].includes(res.statusCode || 0)) {
             const redirectUrl = res.headers.location;
             if (redirectUrl) {
               download(redirectUrl);
@@ -149,14 +178,13 @@ export class TwitterDownloader implements BaseDownloader {
           }
 
           if (res.statusCode !== 200) {
-            resolve({ success: false, error: `HTTP Error ${res.statusCode}` });
+            resolve({ success: false, error: `HTTP ${res.statusCode}` });
             return;
           }
 
           const totalSize = parseInt(res.headers['content-length'] || '0');
           const urlPath = new URL(targetUrl).pathname;
-          let fileName = urlPath.split('/').pop() || `twitter_video_${Date.now()}.mp4`;
-          
+          let fileName = urlPath.split('/').pop() || `twitter_${Date.now()}.mp4`;
           fileName = fileName.replace(/[\\/:*?"<>|]/g, '_');
           if (!fileName.includes('.')) fileName += '.mp4';
           
@@ -166,41 +194,25 @@ export class TwitterDownloader implements BaseDownloader {
           const startTime = Date.now();
 
           res.pipe(fileStream);
-
           res.on('data', (chunk) => {
             downloadedSize += chunk.length;
             if (totalSize > 0) {
               const percent = (downloadedSize / totalSize) * 100;
               const elapsed = (Date.now() - startTime) / 1000;
               const speedBytes = downloadedSize / elapsed;
-              const speed = this.formatSpeed(speedBytes);
-              const remainingBytes = totalSize - downloadedSize;
-              const eta = this.formatEta(remainingBytes / speedBytes);
-
               onProgress({
                 percent,
                 totalSize: this.formatBytes(totalSize),
-                speed,
-                eta
+                speed: `${this.formatBytes(speedBytes)}/s`,
+                eta: this.formatEta((totalSize - downloadedSize) / speedBytes)
               });
             }
           });
 
-          fileStream.on('finish', () => {
-            fileStream.close();
-            resolve({ success: true });
-          });
-
-          fileStream.on('error', (err) => {
-            fs.unlink(fullPath, () => {});
-            resolve({ success: false, error: err.message });
-          });
-
-        }).on('error', (err) => {
-          resolve({ success: false, error: err.message });
-        });
+          fileStream.on('finish', () => { fileStream.close(); resolve({ success: true }); });
+          fileStream.on('error', (err) => { fs.unlink(fullPath, () => {}); resolve({ success: false, error: err.message }); });
+        }).on('error', (err) => resolve({ success: false, error: err.message }));
       };
-
       download(downloadUrl);
     });
   }
@@ -208,13 +220,9 @@ export class TwitterDownloader implements BaseDownloader {
   private formatBytes(bytes: number): string {
     if (bytes === 0) return '0 B';
     const k = 1024;
-    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+    const sizes = ['B', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  }
-
-  private formatSpeed(bytesPerSecond: number): string {
-    return `${this.formatBytes(bytesPerSecond)}/s`;
   }
 
   private formatEta(seconds: number): string {
