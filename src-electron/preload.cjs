@@ -33,6 +33,18 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onDownloadProgress: (callback) => {
     ipcRenderer.on('download-progress', (event, value) => callback(value));
   },
+  windowMinimize: () => {
+    console.log('[PRELOAD] windowMinimize called');
+    ipcRenderer.send('window-minimize');
+  },
+  windowMaximize: () => {
+    console.log('[PRELOAD] windowMaximize called');
+    ipcRenderer.send('window-maximize');
+  },
+  windowClose: () => {
+    console.log('[PRELOAD] windowClose called');
+    ipcRenderer.send('window-close');
+  },
 });
 
 console.log('[PRELOAD] CommonJS Preload script finished exposing API');
