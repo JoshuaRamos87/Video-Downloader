@@ -1,6 +1,6 @@
 {
   "name": "video-downloader-electron",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Simple Video Downloader using Electron and Angular",
   "main": "dist-electron/main.js",
   "type": "module",
@@ -28,7 +28,7 @@
         "portable",
         "zip"
       ],
-      "icon": "ui/public/favicon.ico"
+      "icon": "ui/public/app-icon.ico"
     }
   },
   "dependencies": {
