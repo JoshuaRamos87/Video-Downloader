@@ -39,6 +39,9 @@ export interface ElectronAPI {
   readClipboard: () => Promise<string>;
   downloadVideo: (data: DownloadRequest) => Promise<{ success: boolean; error?: string }>;
   onDownloadProgress: (callback: (progress: DownloadProgress) => void) => void;
+  windowMinimize: () => void;
+  windowMaximize: () => void;
+  windowClose: () => void;
 }
 
 declare global {

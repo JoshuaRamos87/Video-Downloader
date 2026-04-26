@@ -72,6 +72,7 @@ function createWindow(): void {
   win = new BrowserWindow({
     width: 1100,
     height: 900,
+    frame: false,
     webPreferences: {
       preload: preloadPath,
       contextIsolation: true,
@@ -119,6 +120,24 @@ ipcMain.on('log-message', (_event, { level, message, args }: { level: any, messa
 
 ipcMain.handle('read-clipboard', async (): Promise<string> => {
   return clipboard.readText();
+});
+
+ipcMain.on('window-minimize', () => {
+  if (win) win.minimize();
+});
+
+ipcMain.on('window-maximize', () => {
+  if (win) {
+    if (win.isMaximized()) {
+      win.restore();
+    } else {
+      win.maximize();
+    }
+  }
+});
+
+ipcMain.on('window-close', () => {
+  if (win) win.close();
 });
 
 ipcMain.handle('select-directory', async (): Promise<string | null> => {

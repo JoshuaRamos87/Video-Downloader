@@ -1,3 +1,18 @@
+<div class="custom-titlebar">
+  <div class="titlebar-title">YouTube Downloader</div>
+  <div class="titlebar-controls">
+    <button class="titlebar-btn minimize" (click)="minimizeWindow()">
+      <svg width="10" height="10" viewBox="0 0 10 10"><path fill="currentColor" d="M0,4h10v2H0V4z"/></svg>
+    </button>
+    <button class="titlebar-btn maximize" (click)="maximizeWindow()">
+      <svg width="10" height="10" viewBox="0 0 10 10"><path fill="currentColor" d="M0,0v10h10V0H0z M9,9H1V1h8V9z"/></svg>
+    </button>
+    <button class="titlebar-btn close" (click)="closeWindow()">
+      <svg width="10" height="10" viewBox="0 0 10 10"><path fill="currentColor" d="M10,1.4L8.6,0L5,3.6L1.4,0L0,1.4L3.6,5L0,8.6L1.4,10L5,6.4L8.6,10L10,8.6L6.4,5L10,1.4z"/></svg>
+    </button>
+  </div>
+</div>
+
 <div class="slide-menu-overlay" [class.open]="isSettingsOpen()" (click)="toggleSettings()"></div>
 
 <div class="slide-menu" [class.open]="isSettingsOpen()">
@@ -53,6 +68,7 @@
   </div>
 </div>
 
+<div class="main-content">
 <div class="container">
   <div class="header-wrapper">
     <h1>YouTube Downloader Pro</h1>
@@ -143,4 +159,5 @@
   <div class="toast" [class.show]="toastMessage()">
     {{ toastMessage() }}
   </div>
+</div>
 </div>
