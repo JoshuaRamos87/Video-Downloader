@@ -531,6 +531,19 @@ button:disabled {
   fill: currentColor;
 }
 
+.menu-close-btn {
+  background: none;
+  border: none;
+  padding: 0.5rem;
+  color: var(--text-main);
+  cursor: pointer;
+}
+
+.menu-close-btn:hover {
+  background: var(--bg-button-hover);
+  border-radius: 4px;
+}
+
 .menu-breadcrumbs {
   font-size: 0.9rem;
   font-weight: bold;
