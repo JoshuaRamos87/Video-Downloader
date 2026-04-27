@@ -224,7 +224,7 @@
   height: calc(100vh - 32px);
   width: 48px;
   background: var(--bg-container);
-  border-left: 1px solid var(--border-color);
+  box-shadow: -8px 0 16px var(--shadow-color); /* Shadow on the left */
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
@@ -232,11 +232,6 @@
   cursor: pointer;
   z-index: 900;
   transition: background-color 0.2s;
-  /* Removed border-radius and specialized borders that caused issues */
-}
-
-.history-toggle-bar:hover {
-  background: var(--bg-button);
 }
 
 .history-toggle-bar svg {
