@@ -256,6 +256,10 @@
 }
 
 @media (max-width: 1100px) {
+  .main-content {
+    padding-right: calc(1rem + 48px); /* Add space for the fixed toggle bar */
+  }
+
   .history-toggle-bar {
     display: flex;
   }
