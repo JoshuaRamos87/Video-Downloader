@@ -38,6 +38,9 @@
         <li>
           <button (click)="openSubmenu('themes')">Themes</button>
         </li>
+        <li>
+          <button (click)="openSubmenu('dev')">Developer Settings</button>
+        </li>
       </ul>
     </div>
 
@@ -67,6 +70,16 @@
         <label class="theme-option">
           <input type="radio" name="theme" value="nord" [checked]="selectedTheme() === 'nord'" (change)="selectTheme('nord')">
           Nord
+        </label>
+      </div>
+    </div>
+
+    <!-- Developer Settings View -->
+    <div *ngIf="settingsView() === 'dev'">
+      <div class="theme-options">
+        <label class="theme-option">
+          <input type="checkbox" [checked]="showDevLogs()" (change)="toggleDevLogs()">
+          Show Output Logs
         </label>
       </div>
     </div>
@@ -171,4 +184,20 @@
     {{ toastMessage() }}
   </div>
 </div>
+
+<!-- Logs Card -->
+<div class="container log-container" *ngIf="showDevLogs()">
+  <div class="log-header">
+    <span class="section-title">Output Logs</span>
+    <button class="clear-logs-btn" (click)="logs.set([])">Clear</button>
+  </div>
+  <div class="log-content">
+    <div *ngFor="let entry of logs()" class="log-entry" [ngClass]="entry.level.toLowerCase()">
+      <span class="log-timestamp">{{ entry.timestamp | date:'HH:mm:ss.SSS' }}</span>
+      <span class="log-level">[{{ entry.level }}]</span>
+      <span class="log-message">{{ entry.message }}</span>
+    </div>
+  </div>
+</div>
+
 </div>

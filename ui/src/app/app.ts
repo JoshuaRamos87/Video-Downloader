@@ -24,9 +24,11 @@ export class App implements OnInit {
 
   // Settings and Theme State
   isSettingsOpen = signal(false);
-  settingsView = signal<'main' | 'themes'>('main');
+  settingsView = signal<'main' | 'themes' | 'dev'>('main');
   selectedTheme = signal<string>('system'); // 'system', 'dark', 'light', 'sepia', 'dracula', 'nord'
   osTheme = signal<string>('light');
+  showDevLogs = signal(false);
+  logs = signal<any[]>([]);
   private toastTimeout: any;
 
   // Video Info
@@ -93,9 +95,17 @@ export class App implements OnInit {
       const api = (window as any).electronAPI;
       if (api) {
         api.log('INFO', 'Angular app initialized and connected to Electron');
+        
         api.onDownloadProgress((data: any) => {
           this.ngZone.run(() => {
             this.progress.set(data);
+          });
+        });
+
+        api.onNewLog((entry: any) => {
+          this.ngZone.run(() => {
+            this.logs.update(l => [...l, entry].slice(-1000));
+            this.scrollToBottom();
           });
         });
       }
@@ -118,7 +128,7 @@ export class App implements OnInit {
       if (this.api) {
         // Load persisted config
         const config = await this.api.getConfig();
-        this.ngZone.run(() => {
+        this.ngZone.run(async () => {
           if (config.outputPath) {
             this.outputPath.set(config.outputPath);
             this.api.log('INFO', `Loaded output path from config: ${config.outputPath}`);
@@ -126,6 +136,12 @@ export class App implements OnInit {
           if (config.theme) {
             this.selectedTheme.set(config.theme);
             this.api.log('INFO', `Loaded theme from config: ${config.theme}`);
+          }
+          if (config.showDevLogs) {
+            this.showDevLogs.set(true);
+            const allLogs = await this.api.getAllLogs();
+            this.logs.set(allLogs);
+            this.scrollToBottom();
           }
         });
       }
@@ -148,7 +164,7 @@ export class App implements OnInit {
     }
   }
 
-  openSubmenu(view: 'themes') {
+  openSubmenu(view: 'themes' | 'dev') {
     this.settingsView.set(view);
   }
 
@@ -159,6 +175,7 @@ export class App implements OnInit {
   getBreadcrumbs() {
     switch(this.settingsView()) {
       case 'themes': return 'Settings > Themes';
+      case 'dev': return 'Settings > Developer';
       default: return 'Settings';
     }
   }
@@ -170,6 +187,34 @@ export class App implements OnInit {
       const config = await this.api.getConfig();
       await this.api.setConfig({ ...config, theme: theme });
       this.api.log('INFO', `Saved theme preference: ${theme}`);
+    }
+  }
+
+  async toggleDevLogs() {
+    const newValue = !this.showDevLogs();
+    this.showDevLogs.set(newValue);
+    
+    if (this.api) {
+      const config = await this.api.getConfig();
+      await this.api.setConfig({ ...config, showDevLogs: newValue });
+      this.api.log('INFO', `Developer logs toggled: ${newValue}`);
+      
+      if (newValue) {
+        const allLogs = await this.api.getAllLogs();
+        this.logs.set(allLogs);
+        this.scrollToBottom();
+      }
+    }
+  }
+
+  private scrollToBottom() {
+    if (this.showDevLogs()) {
+      setTimeout(() => {
+        const logContent = document.querySelector('.log-content');
+        if (logContent) {
+          logContent.scrollTop = logContent.scrollHeight;
+        }
+      }, 50);
     }
   }
 

@@ -4,8 +4,18 @@ import fs from 'node:fs';
 
 type LogLevel = 'INFO' | 'WARN' | 'ERROR' | 'DEBUG';
 
+export interface LogEntry {
+  level: LogLevel;
+  message: string;
+  timestamp: string;
+  formattedMessage: string;
+}
+
 class Logger {
   private logFile: string;
+  private logBuffer: LogEntry[] = [];
+  private readonly maxBufferSize = 1000;
+  private onLogCallbacks: ((entry: LogEntry) => void)[] = [];
 
   constructor() {
     const userDataPath = app.getPath('userData');
@@ -27,7 +37,24 @@ class Logger {
   }
 
   private log(level: LogLevel, message: string, ...args: any[]): void {
+    const timestamp = new Date().toISOString();
     const formattedMessage = this.formatMessage(level, message, ...args);
+    
+    const entry: LogEntry = {
+      level,
+      message: `${message} ${args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : arg).join(' ')}`.trim(),
+      timestamp,
+      formattedMessage
+    };
+
+    // Store in buffer
+    this.logBuffer.push(entry);
+    if (this.logBuffer.length > this.maxBufferSize) {
+      this.logBuffer.shift();
+    }
+
+    // Trigger callbacks
+    this.onLogCallbacks.forEach(cb => cb(entry));
     
     // Log to terminal
     switch (level) {
@@ -71,6 +98,17 @@ class Logger {
 
   getLogPath(): string {
     return this.logFile;
+  }
+
+  getLogs(): LogEntry[] {
+    return [...this.logBuffer];
+  }
+
+  onLog(callback: (entry: LogEntry) => void): () => void {
+    this.onLogCallbacks.push(callback);
+    return () => {
+      this.onLogCallbacks = this.onLogCallbacks.filter(cb => cb !== callback);
+    };
   }
 }
 

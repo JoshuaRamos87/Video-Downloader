@@ -1,5 +1,14 @@
 export interface AppConfig {
   outputPath?: string;
+  theme?: string;
+  showDevLogs?: boolean;
+}
+
+export interface LogEntry {
+  level: 'INFO' | 'WARN' | 'ERROR' | 'DEBUG';
+  message: string;
+  timestamp: string;
+  formattedMessage: string;
 }
 
 export interface VideoFormat {
@@ -42,6 +51,10 @@ export interface ElectronAPI {
   windowMinimize: () => void;
   windowMaximize: () => void;
   windowClose: () => void;
+  openPath: (path: string) => Promise<void>;
+  getAllLogs: () => Promise<LogEntry[]>;
+  onNewLog: (callback: (entry: LogEntry) => void) => void;
+  log: (level: string, message: string, ...args: any[]) => void;
 }
 
 declare global {

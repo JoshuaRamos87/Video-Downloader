@@ -1,6 +1,6 @@
 import { Innertube, UniversalCache } from 'youtubei.js';
 import youtubeDl from 'youtube-dl-exec';
-const { exec } = youtubeDl;
+const { create, constants } = youtubeDl as any;
 import path from 'node:path';
 import ffmpegPath from 'ffmpeg-static';
 import { logger } from '../../logger.js';
@@ -13,6 +13,13 @@ import {
   VideoFormat
 } from '../../interfaces.js';
 
+// Helper to fix paths when running from an ASAR archive
+const fixPath = (p: string) => p.replace('app.asar', 'app.asar.unpacked');
+
+const ytdlpBinary = fixPath(constants.YOUTUBE_DL_PATH);
+const ytdl = create(ytdlpBinary);
+const fixedFfmpegPath = fixPath(ffmpegPath);
+
 export class YoutubeDownloader implements BaseDownloader {
   private ytInstances: Record<string, Innertube> = {};
 
@@ -21,16 +28,15 @@ export class YoutubeDownloader implements BaseDownloader {
 
     try {
       logger.debug(`Initializing Innertube with client: ${clientType}`);
+      // Use a more robust initialization for packaged apps
       const yt = await Innertube.create({ 
-        cache: new UniversalCache(false),
         client_type: clientType as any,
-        ...({ generate_session_store: true } as any)
       });
       this.ytInstances[clientType] = yt;
       logger.info(`youtubei.js (${clientType}) initialized`);
       return yt;
     } catch (error: any) {
-      logger.error(`Failed to initialize youtubei.js (${clientType}):`, error.message);
+      logger.error(`Failed to initialize youtubei.js (${clientType}): ${error.message}`);
       return null;
     }
   }
@@ -45,27 +51,38 @@ export class YoutubeDownloader implements BaseDownloader {
       let allFormats: any[] = [];
       let title = 'Unknown Title';
       let thumbnail = '';
+      let failureReasons: string[] = [];
 
-      const browsers = ['chrome', 'edge', 'brave'] as const;
+      const browsers = ['chrome', 'edge', 'brave', null] as const;
       let ytdlInfo: any;
       
       for (const browser of browsers) {
         try {
-          logger.debug(`Trying to fetch info using ${browser} cookies...`);
-          ytdlInfo = await exec(url, {
+          logger.debug(`Trying to fetch info using ${browser || 'no'} cookies...`);
+          
+          const flags: any = {
             dumpJson: true,
             noCheckCertificates: true,
             noWarnings: true,
-            cookiesFromBrowser: browser,
             noPlaylist: true,
             jsRuntime: 'node'
-          } as any);
+          };
+          if (browser) flags.cookiesFromBrowser = browser;
+
+          ytdlInfo = await ytdl(url, flags);
+          
           if (ytdlInfo) {
-            logger.info(`Successfully fetched info using ${browser} cookies`);
+            logger.info(`Successfully fetched info using ${browser || 'no'} cookies`);
             break;
           }
         } catch (e: any) { 
-          logger.warn(`Failed to fetch info using ${browser} cookies: ${e.message}`);
+          const msg = e.message || String(e) || '';
+          if (msg.includes('Sign in to confirm')) failureReasons.push('Bot detection triggered (Sign-in required)');
+          if (msg.includes('confirm your age')) failureReasons.push('Age-restricted content');
+          if (msg.includes('Private video')) failureReasons.push('Private video');
+          if (msg.includes('not available in your country')) failureReasons.push('Geographically restricted');
+          
+          logger.warn(`Failed to fetch info using ${browser || 'no'} cookies: ${msg.split('\n')[0]}`);
           continue; 
         }
       }
@@ -76,33 +93,71 @@ export class YoutubeDownloader implements BaseDownloader {
         allFormats = ytdlInfo.formats;
       } else {
         logger.info('Falling back to youtubei.js for video info');
-        const clients = ['IOS', 'MWEB', 'TVHTML5', 'ANDROID', 'WEB'] as const;
+        // Try multiple clients as some are more resilient to bot detection
+        const clients = ['TVHTML5', 'IOS', 'ANDROID', 'MWEB', 'WEB'] as const;
         for (const client of clients) {
           try {
             logger.debug(`Trying youtubei.js with client: ${client}`);
             const yt = await this.getYoutube(client);
-            if (!yt) continue;
+            if (!yt) {
+              logger.warn(`Could not create youtubei.js instance for client: ${client}`);
+              continue;
+            }
 
-            const info = await yt.getInfo(videoId);
-            if (info && info.streaming_data) {
-              title = info.basic_info.title || 'Unknown Title';
-              thumbnail = info.basic_info.thumbnail?.[0]?.url || '';
-              allFormats = [
-                ...(info.streaming_data.formats || []), 
-                ...(info.streaming_data.adaptive_formats || [])
-              ];
-              logger.info(`Successfully fetched info using youtubei.js with ${client} client`);
-              break;
+            let info: any;
+            try {
+              info = await yt.getInfo(videoId);
+            } catch (getInfoErr: any) {
+              logger.error(`yt.getInfo (${client}) threw error: ${getInfoErr.message}`);
+              if (getInfoErr.stack) logger.debug(`Stack: ${getInfoErr.stack}`);
+              continue;
+            }
+
+            if (info) {
+              // Extremely defensive extraction to find what's missing
+              title = info.basic_info?.title || 'Unknown Title';
+              
+              logger.debug(`Processing info for client ${client}. Basic info present: ${!!info.basic_info}`);
+
+              let thumbUrl = '';
+              try {
+                const thumbnails = info.basic_info?.thumbnail;
+                if (Array.isArray(thumbnails) && thumbnails.length > 0) {
+                  thumbUrl = thumbnails[0].url || '';
+                } else if (thumbnails && (thumbnails as any).url) {
+                  thumbUrl = (thumbnails as any).url;
+                }
+              } catch (thumbErr) {
+                logger.warn(`Failed to extract thumbnail for ${client}:`, thumbErr);
+              }
+              thumbnail = thumbUrl;
+
+              if (info.streaming_data) {
+                allFormats = [
+                  ...(info.streaming_data.formats || []), 
+                  ...(info.streaming_data.adaptive_formats || [])
+                ];
+                logger.info(`Successfully fetched info using youtubei.js with ${client} client`);
+                break;
+              } else {
+                logger.warn(`youtubei.js (${client}) returned info but no streaming data. This might be a restricted video.`);
+              }
             }
           } catch (e: any) { 
-            logger.warn(`youtubei.js failed with ${client} client: ${e.message}`);
+            const msg = e.message || '';
+            logger.error(`Outer catch in youtubei.js loop (${client}): ${msg}`);
+            if (e.stack) logger.debug(`Stack: ${e.stack}`);
+            
+            if (msg.includes('Sign in to confirm')) failureReasons.push(`youtubei.js (${client}): Bot detection`);
             continue; 
           }
         }
       }
 
       if (allFormats.length === 0) {
-        throw new Error('Could not fetch video info. Try closing your browser or signing in.');
+        const uniqueReasons = [...new Set(failureReasons)];
+        const reasonStr = uniqueReasons.length > 0 ? `Reasons: ${uniqueReasons.join(', ')}` : 'Could not retrieve metadata.';
+        throw new Error(`Failed to fetch video info. ${reasonStr} Try closing your browser, signing in to YouTube in your browser, or trying again later.`);
       }
       
       const formats: VideoFormat[] = allFormats
@@ -148,7 +203,7 @@ export class YoutubeDownloader implements BaseDownloader {
           newline: true,
           noCheckCertificates: true,
           progress: true,
-          ffmpegLocation: ffmpegPath,
+          ffmpegLocation: fixedFfmpegPath,
           format: formatId ? `${formatId}+bestaudio/best` : 'bestvideo+bestaudio/best',
           jsRuntime: 'node'
         };
@@ -156,7 +211,7 @@ export class YoutubeDownloader implements BaseDownloader {
         if (browser) flags.cookiesFromBrowser = browser;
 
         logger.debug(`Starting download process with browser cookies: ${browser || 'none'}`);
-        const ls = exec(url, flags);
+        const ls = ytdl(url, flags) as any;
 
         let lastError = '';
 
@@ -165,7 +220,7 @@ export class YoutubeDownloader implements BaseDownloader {
         });
 
         if (ls.stdout) {
-          ls.stdout.on('data', (data) => {
+          ls.stdout.on('data', (data: Buffer | string) => {
             const line = data.toString();
             const progressMatch = line.match(/\[download\]\s+(\d+\.\d+)% of\s+([\d\w\.]+)\s+at\s+([\d\w\.\/s]+)\s+ETA\s+([\d:]+)/);
             if (progressMatch) {
@@ -181,14 +236,14 @@ export class YoutubeDownloader implements BaseDownloader {
         }
 
         if (ls.stderr) {
-          ls.stderr.on('data', (data) => {
+          ls.stderr.on('data', (data: Buffer | string) => {
             const errorMsg = data.toString();
             lastError += errorMsg;
             logger.warn(`[YT-DLP] ${errorMsg.trim()}`);
           });
         }
 
-        ls.on('close', (code) => {
+        ls.on('close', (code: number | null) => {
           if (code === 0) {
             logger.info('Download completed successfully');
             resolve({ success: true });
@@ -198,7 +253,7 @@ export class YoutubeDownloader implements BaseDownloader {
           }
         });
 
-        ls.on('error', (err) => {
+        ls.on('error', (err: Error) => {
           logger.error(`Process error: ${err.message}`);
           resolve({ success: false, error: err.message });
         });

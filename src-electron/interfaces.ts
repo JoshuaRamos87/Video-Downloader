@@ -1,5 +1,6 @@
 export interface AppConfig {
   outputPath?: string;
+  showDevLogs?: boolean;
 }
 
 export interface VideoFormat {

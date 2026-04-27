@@ -86,6 +86,17 @@ app.whenReady().then(async () => {
   });
 
   createWindow();
+
+  // Connect logger to UI
+  logger.onLog((entry) => {
+    if (win) {
+      win.webContents.send('new-log', entry);
+    }
+  });
+});
+
+ipcMain.handle('get-all-logs', async () => {
+  return logger.getLogs();
 });
 
 ipcMain.handle('open-path', async (_event, fullPath: string): Promise<void> => {

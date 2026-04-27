@@ -49,6 +49,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
     console.log('[PRELOAD] openPath called');
     return ipcRenderer.invoke('open-path', path);
   },
+  getAllLogs: () => {
+    return ipcRenderer.invoke('get-all-logs');
+  },
+  onNewLog: (callback) => {
+    ipcRenderer.on('new-log', (event, entry) => callback(entry));
+  },
 });
 
 console.log('[PRELOAD] CommonJS Preload script finished exposing API');
