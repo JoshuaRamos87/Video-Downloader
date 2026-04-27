@@ -211,7 +211,7 @@ export class YoutubeDownloader implements BaseDownloader {
         if (browser) flags.cookiesFromBrowser = browser;
 
         logger.debug(`Starting download process with browser cookies: ${browser || 'none'}`);
-        const ls = ytdl(url, flags) as any;
+        const ls = ytdl.exec(url, flags) as any;
 
         let lastError = '';
 
