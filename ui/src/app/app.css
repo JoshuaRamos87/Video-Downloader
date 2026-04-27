@@ -144,27 +144,27 @@
 .main-content {
   padding: 1rem;
   flex: 1;
-  overflow: auto; /* Changed from overflow-y to auto to allow horizontal scroll */
+  overflow: auto;
 }
 
 .content-wrapper {
   display: flex;
-  flex-wrap: wrap; /* Allow cards to stack on smaller screens */
+  flex-wrap: wrap;
   gap: 1.5rem;
   justify-content: center;
   align-items: flex-start;
   max-width: 1400px;
   margin: 0 auto;
-  min-width: min-content; /* Ensure wrapper expands to hold content */
+  min-width: min-content;
 }
 
 .left-column {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  flex: 1; /* Allow to grow */
-  min-width: 500px; /* Minimum width before it stops shrinking */
-  max-width: 900px; /* Optional: cap the maximum growth for readability */
+  flex: 1;
+  min-width: 500px;
+  max-width: 900px;
 }
 
 .container {
@@ -187,10 +187,108 @@
   padding: 1.5rem;
   border-radius: 12px;
   box-shadow: 0 8px 16px var(--shadow-color);
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease, right 0.3s ease;
   max-height: 85vh;
   display: flex;
   flex-direction: column;
+  z-index: 1000;
+}
+
+.history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.history-close-btn {
+  display: none;
+  background: none;
+  border: none;
+  padding: 0.5rem;
+  color: var(--text-main);
+  cursor: pointer;
+}
+
+.history-close-btn svg {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+}
+
+.history-toggle-bar {
+  display: none;
+  position: fixed;
+  right: 0;
+  top: 32px;
+  height: calc(100vh - 32px);
+  width: 48px;
+  background: var(--bg-container);
+  border-left: 1px solid var(--border-color);
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  padding-top: 2rem;
+  cursor: pointer;
+  z-index: 900;
+  transition: background-color 0.2s;
+  /* Removed border-radius and specialized borders that caused issues */
+}
+
+.history-toggle-bar:hover {
+  background: var(--bg-button);
+}
+
+.history-toggle-bar svg {
+  width: 32px;
+  height: 32px;
+  fill: var(--accent-primary);
+  filter: drop-shadow(0 0 2px var(--shadow-color));
+}
+
+.history-overlay {
+  display: none;
+  position: fixed;
+  top: 32px;
+  left: 0;
+  width: 100%;
+  height: calc(100vh - 32px);
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 950;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+@media (max-width: 1100px) {
+  .history-toggle-bar {
+    display: flex;
+  }
+
+  .history-container {
+    position: fixed;
+    top: 32px;
+    right: -360px;
+    height: calc(100vh - 32px);
+    max-height: none;
+    border-radius: 0;
+    box-shadow: -4px 0 12px var(--shadow-color);
+    width: 350px;
+  }
+
+  .history-container.open {
+    right: 0;
+  }
+
+  .history-close-btn {
+    display: block;
+  }
+
+  .history-overlay.open {
+    display: block;
+    opacity: 1;
+    visibility: visible;
+  }
 }
 
 .history-list {
@@ -727,12 +825,16 @@ button:disabled {
   height: 100%;
   background: transparent;
   border: none;
+  padding: 0;
+  border-radius: 0;
   color: var(--text-main);
   cursor: pointer;
   transition: background-color 0.1s ease;
 }
 
 .titlebar-btn:hover { background-color: var(--bg-button-hover); }
+
+.titlebar-btn svg { fill: currentColor; }
 
 .titlebar-btn.close:hover {
   background-color: #e81123;

@@ -24,6 +24,7 @@ export class App implements OnInit {
 
   // Settings and Theme State
   isSettingsOpen = signal(false);
+  isHistoryOpen = signal(false);
   settingsView = signal<'main' | 'themes' | 'dev'>('main');
   selectedTheme = signal<string>('system'); // 'system', 'dark', 'light', 'sepia', 'dracula', 'nord'
   osTheme = signal<string>('light');
@@ -168,6 +169,10 @@ export class App implements OnInit {
       // Reset view when closing
       setTimeout(() => this.settingsView.set('main'), 300);
     }
+  }
+
+  toggleHistory() {
+    this.isHistoryOpen.update(v => !v);
   }
 
   openSubmenu(view: 'themes' | 'dev') {

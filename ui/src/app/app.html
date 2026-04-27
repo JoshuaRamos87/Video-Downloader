@@ -203,9 +203,24 @@
 </div>
 </div>
 
+<div class="history-overlay" [class.open]="isHistoryOpen()" (click)="toggleHistory()"></div>
+
+<div class="history-toggle-bar" (click)="toggleHistory()">
+  <!-- Double chevron pointing left -->
+  <svg viewBox="0 0 24 24">
+    <path d="M17.59 18L19 16.59 14.42 12 19 7.41 17.59 6l-6 6z"/>
+    <path d="M11 18l1.41-1.41L7.83 12l4.58-4.59L11 6l-6 6z"/>
+  </svg>
+</div>
+
 <!-- History Card -->
-<div class="history-container">
-  <span class="section-title">Download History</span>
+<div class="history-container" [class.open]="isHistoryOpen()">
+  <div class="history-header">
+    <span class="section-title">Download History</span>
+    <button class="history-close-btn" (click)="toggleHistory()">
+      <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+    </button>
+  </div>
   <div class="history-list">
     <div *ngFor="let item of downloadHistory()" class="history-item">
       <img [src]="item.thumbnail" alt="Thumb" class="history-thumbnail">
