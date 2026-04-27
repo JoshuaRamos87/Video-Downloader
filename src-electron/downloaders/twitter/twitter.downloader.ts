@@ -212,8 +212,16 @@ export class TwitterDownloader implements BaseDownloader {
             }
           });
 
-          fileStream.on('finish', () => { fileStream.close(); resolve({ success: true }); });
-          fileStream.on('error', (err) => { fs.unlink(fullPath, () => {}); resolve({ success: false, error: err.message }); });
+          fileStream.on('finish', () => { 
+            fileStream.close(); 
+            logger.info(`Download completed successfully: ${fullPath}`);
+            resolve({ success: true, filePath: fullPath }); 
+          });
+          fileStream.on('error', (err) => { 
+            fs.unlink(fullPath, () => {}); 
+            logger.error(`File stream error: ${err.message}`);
+            resolve({ success: false, error: err.message }); 
+          });
         }).on('error', (err) => resolve({ success: false, error: err.message }));
       };
       download(downloadUrl);

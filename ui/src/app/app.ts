@@ -47,6 +47,8 @@ export class App implements OnInit {
     totalSize: ''
   });
 
+  downloadHistory = signal<any[]>([]);
+
   // Computed theme class based on selection and OS setting
   themeClass = computed(() => {
     const theme = this.selectedTheme();
@@ -142,6 +144,10 @@ export class App implements OnInit {
             const allLogs = await this.api.getAllLogs();
             this.logs.set(allLogs);
             this.scrollToBottom();
+          }
+          if (config.downloadHistory) {
+            this.downloadHistory.set(config.downloadHistory);
+            this.api.log('INFO', `Loaded ${config.downloadHistory.length} history items`);
           }
         });
       }
@@ -299,11 +305,28 @@ export class App implements OnInit {
         formatId: this.selectedFormatId()
       });
 
-      this.ngZone.run(() => {
+      this.ngZone.run(async () => {
         if (result.success) {
           this.api.log('INFO', 'Download finished successfully');
           this.status.set('Download completed successfully! Click here to open folder.');
           this.isSuccess.set(true);
+
+          // Add to history
+          const info = this.videoInfo();
+          if (info) {
+            const newItem = {
+              id: Date.now().toString(),
+              title: info.title || 'Unknown Video',
+              thumbnail: info.thumbnail || '',
+              filePath: result.filePath || this.outputPath(),
+              timestamp: Date.now()
+            };
+            this.downloadHistory.update(h => [newItem, ...h]);
+            
+            // Save history to config
+            const config = await this.api.getConfig();
+            await this.api.setConfig({ ...config, downloadHistory: this.downloadHistory() });
+          }
         } else {
           this.api.log('ERROR', `Download failed: ${result.error}`);
           this.status.set(`Error: ${result.error}`);
@@ -324,6 +347,20 @@ export class App implements OnInit {
   openFolder() {
     if (this.api && this.outputPath()) {
       this.api.openPath(this.outputPath());
+    }
+  }
+
+  openFileFolder(path: string) {
+    if (this.api && path) {
+      this.api.openPath(path);
+    }
+  }
+
+  async deleteHistoryItem(id: string) {
+    this.downloadHistory.update(h => h.filter(item => item.id !== id));
+    if (this.api) {
+      const config = await this.api.getConfig();
+      await this.api.setConfig({ ...config, downloadHistory: this.downloadHistory() });
     }
   }
 

@@ -144,31 +144,152 @@
 .main-content {
   padding: 1rem;
   flex: 1;
-  overflow-y: auto;
+  overflow: auto; /* Changed from overflow-y to auto to allow horizontal scroll */
 }
 
+.content-wrapper {
+  display: flex;
+  flex-wrap: wrap; /* Allow cards to stack on smaller screens */
+  gap: 1.5rem;
+  justify-content: center;
+  align-items: flex-start;
+  max-width: 1400px;
+  margin: 0 auto;
+  min-width: min-content; /* Ensure wrapper expands to hold content */
+}
+
+.left-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  flex: 1; /* Allow to grow */
+  min-width: 500px; /* Minimum width before it stops shrinking */
+  max-width: 900px; /* Optional: cap the maximum growth for readability */
+}
 
 .container {
-  max-width: 800px;
   width: 100%;
   box-sizing: border-box;
-  margin: 0 auto;
   background: var(--bg-container);
   padding: 2rem;
   border-radius: 12px;
   box-shadow: 0 8px 16px var(--shadow-color);
   transition: background-color 0.3s ease, box-shadow 0.3s ease;
   position: relative;
-  overflow: hidden; /* For slide out menu context if needed */
+  overflow: hidden;
 }
 
-h1 {
-  text-align: center;
-  margin-bottom: 2rem;
+.history-container {
+  width: 350px;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  background: var(--bg-container);
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 8px 16px var(--shadow-color);
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.history-list {
+  flex: 1;
+  overflow-y: auto;
+  margin-top: 1rem;
+  padding-right: 0.5rem;
+}
+
+.history-item {
+  display: flex;
+  gap: 1rem;
+  padding: 0.75rem;
+  border-radius: 8px;
+  background: var(--bg-video-info);
+  margin-bottom: 0.75rem;
+  border: 1px solid var(--border-color);
+  transition: transform 0.2s, background-color 0.2s;
+  position: relative;
+}
+
+.history-item:hover {
+  transform: translateX(4px);
+  background: var(--bg-input);
+}
+
+.history-thumbnail {
+  width: 100px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: 4px;
+  background: #000;
+  box-shadow: 0 2px 4px var(--shadow-light);
+}
+
+.history-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+}
+
+.history-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin: 0 0 0.4rem 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text-main);
+}
+
+.history-actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.history-link {
+  font-size: 0.8rem;
   color: var(--accent-primary);
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  transition: color 0.3s ease;
+  text-decoration: none;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.history-link:hover {
+  text-decoration: underline;
+}
+
+.delete-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--text-dim);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+}
+
+.delete-btn:hover {
+  color: var(--accent-error);
+}
+
+.delete-btn svg {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+
+.no-history {
+  text-align: center;
+  color: var(--text-dim);
+  padding: 2rem 0;
+  font-style: italic;
+  font-size: 0.9rem;
 }
 
 .input-group {
@@ -217,19 +338,6 @@ button {
   cursor: pointer;
   transition: all 0.2s;
   font-weight: 600;
-}
-
-/* Specific styling for the dracula theme button text to ensure it's visible */
-:host(.theme-dracula) button, :host(.theme-nord) button {
-  color: var(--text-main);
-}
-
-/* And for light theme */
-:host(.theme-light) button {
-  color: var(--text-main);
-}
-:host(.theme-sepia) button {
-  color: var(--text-main);
 }
 
 button:hover:not(:disabled) {
@@ -369,21 +477,12 @@ button:disabled {
 .download-btn {
   width: 100%;
   background: var(--accent-primary);
-  color: #fff; /* Always white text on download btn, except maybe light theme */
+  color: #fff;
   font-size: 1.2rem;
   font-weight: bold;
   margin-top: 1rem;
   padding: 1rem;
   transition: background-color 0.3s ease, transform 0.1s;
-}
-:host(.theme-light) .download-btn, :host(.theme-sepia) .download-btn {
-  color: white;
-}
-:host(.theme-dracula) .download-btn {
-  color: var(--bg-main);
-}
-:host(.theme-nord) .download-btn {
-  color: var(--bg-main);
 }
 
 .download-btn:hover:not(:disabled) {
@@ -417,14 +516,13 @@ button:disabled {
   opacity: 0.8;
 }
 
-/* Toast Notification Styles */
 .toast {
   position: fixed;
   bottom: 30px;
   left: 50%;
   transform: translateX(-50%) translateY(100px);
   background-color: var(--bg-toast);
-  color: var(--bg-container); /* Inverse color for toast text */
+  color: var(--bg-container);
   padding: 12px 24px;
   border-radius: 8px;
   box-shadow: 0 4px 12px var(--shadow-color);
@@ -436,20 +534,11 @@ button:disabled {
   display: block;
 }
 
-:host(.theme-light) .toast, :host(.theme-sepia) .toast {
-  color: #fff;
-}
-:host(.theme-dracula) .toast, :host(.theme-nord) .toast {
-  color: var(--bg-main);
-}
-
 .toast.show {
   opacity: 1;
   transform: translateX(-50%) translateY(0);
 }
 
-/* Slide-out Menu Styles */
-/* These will be used in a later step, adding them here to complete CSS refactor */
 .header-wrapper {
   position: relative;
   display: flex;
@@ -472,7 +561,6 @@ button:disabled {
 }
 
 .settings-btn:hover {
-  background: none;
   color: var(--accent-primary);
 }
 
@@ -484,15 +572,13 @@ button:disabled {
 }
 
 @keyframes spin {
-  100% {
-    transform: rotate(360deg);
-  }
+  100% { transform: rotate(360deg); }
 }
 
 .slide-menu {
   position: absolute;
   top: 0;
-  left: -300px; /* Hidden by default */
+  left: -300px;
   width: 250px;
   height: 100%;
   background: var(--bg-container);
@@ -534,7 +620,7 @@ button:disabled {
   gap: 0.5rem;
 }
 
-.menu-back-btn {
+.menu-back-btn, .menu-close-btn {
   background: none;
   border: none;
   padding: 0.5rem;
@@ -542,29 +628,12 @@ button:disabled {
   cursor: pointer;
 }
 
-.menu-back-btn:hover {
+.menu-back-btn:hover, .menu-close-btn:hover {
   background: var(--bg-button-hover);
   border-radius: 4px;
 }
 
-.menu-back-btn svg {
-  width: 16px;
-  height: 16px;
-  fill: currentColor;
-}
-
-.menu-close-btn {
-  background: none;
-  border: none;
-  padding: 0.5rem;
-  color: var(--text-main);
-  cursor: pointer;
-}
-
-.menu-close-btn:hover {
-  background: var(--bg-button-hover);
-  border-radius: 4px;
-}
+.menu-back-btn svg { width: 16px; height: 16px; fill: currentColor; }
 
 .menu-breadcrumbs {
   font-size: 0.9rem;
@@ -584,9 +653,7 @@ button:disabled {
   margin: 0;
 }
 
-.menu-list li {
-  margin-bottom: 0.5rem;
-}
+.menu-list li { margin-bottom: 0.5rem; }
 
 .menu-list button {
   width: 100%;
@@ -598,15 +665,9 @@ button:disabled {
   transition: background-color 0.2s;
 }
 
-.menu-list button:hover {
-  background: var(--bg-button);
-}
+.menu-list button:hover { background: var(--bg-button); }
 
-.theme-options {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
+.theme-options { display: flex; flex-direction: column; gap: 0.5rem; }
 
 .theme-option {
   display: flex;
@@ -618,15 +679,10 @@ button:disabled {
   transition: background-color 0.2s;
 }
 
-.theme-option:hover {
-  background: var(--bg-button);
-}
+.theme-option:hover { background: var(--bg-button); }
 
-.theme-option input[type="radio"] {
-  accent-color: var(--accent-primary);
-}
+.theme-option input[type="radio"] { accent-color: var(--accent-primary); }
 
-/* Custom Title Bar Styles */
 .custom-titlebar {
   display: flex;
   justify-content: center;
@@ -654,11 +710,6 @@ button:disabled {
   opacity: 0.9;
 }
 
-.app-icon {
-  margin-top: -1px;
-}
-
-
 .titlebar-controls {
   display: flex;
   height: 100%;
@@ -676,29 +727,22 @@ button:disabled {
   height: 100%;
   background: transparent;
   border: none;
-  border-radius: 0;
-  padding: 0;
   color: var(--text-main);
   cursor: pointer;
   transition: background-color 0.1s ease;
 }
 
-.titlebar-btn svg {
-  fill: currentColor;
-}
-
-.titlebar-btn:hover {
-  background-color: var(--bg-button-hover);
-}
+.titlebar-btn:hover { background-color: var(--bg-button-hover); }
 
 .titlebar-btn.close:hover {
   background-color: #e81123;
   color: white;
 }
 
-/* Log Card Styles */
 .log-container {
-  margin-top: 1.5rem !important;
+  width: 100% !important;
+  flex-shrink: 0;
+  margin-top: 0 !important;
   padding: 1rem !important;
   max-height: 400px;
   display: flex;
@@ -730,21 +774,13 @@ button:disabled {
   word-break: break-all;
 }
 
-.log-timestamp {
-  color: #888;
-  margin-right: 6px;
-}
+.log-timestamp { color: #888; margin-right: 6px; }
 
-.log-level {
-  font-weight: bold;
-  margin-right: 6px;
-}
+.log-level { font-weight: bold; margin-right: 6px; }
 
 .log-entry.info .log-level { color: #0f0; }
 .log-entry.warn .log-level { color: #ff0; }
 .log-entry.error .log-level { color: #f00; }
 .log-entry.debug .log-level { color: #0ff; }
 
-.log-message {
-  color: #ddd;
-}
+.log-message { color: #ddd; }

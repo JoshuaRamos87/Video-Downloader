@@ -1,6 +1,16 @@
+export interface DownloadHistoryItem {
+  id: string;
+  title: string;
+  thumbnail: string;
+  filePath: string;
+  timestamp: number;
+}
+
 export interface AppConfig {
   outputPath?: string;
   showDevLogs?: boolean;
+  theme?: string;
+  downloadHistory?: DownloadHistoryItem[];
 }
 
 export interface VideoFormat {
@@ -34,6 +44,7 @@ export interface DownloadRequest {
 
 export interface DownloadResult {
   success: boolean;
+  filePath?: string;
   error?: string;
 }
 

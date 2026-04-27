@@ -218,6 +218,7 @@ export class YoutubeDownloader implements BaseDownloader {
         const ls = ytdl.exec(url, flags) as any;
 
         let lastError = '';
+        let finalPath = '';
 
         (ls as any).catch((err: any) => {
           logger.error(`youtube-dl-exec process error: ${err.message}`);
@@ -226,6 +227,17 @@ export class YoutubeDownloader implements BaseDownloader {
         if (ls.stdout) {
           ls.stdout.on('data', (data: Buffer | string) => {
             const line = data.toString();
+            
+            // Try to extract destination path
+            const destMatch = line.match(/\[download\] Destination: (.+)/);
+            if (destMatch) finalPath = destMatch[1].trim();
+            
+            const mergeMatch = line.match(/\[Merger\] Merging formats into "(.+)"/);
+            if (mergeMatch) finalPath = mergeMatch[1].trim();
+
+            const alreadyMatch = line.match(/\[download\] (.*?) has already been downloaded/);
+            if (alreadyMatch) finalPath = alreadyMatch[1].trim();
+
             const progressMatch = line.match(/\[download\]\s+(\d+\.\d+)% of\s+([\d\w\.]+)\s+at\s+([\d\w\.\/s]+)\s+ETA\s+([\d:]+)/);
             if (progressMatch) {
               const progress: DownloadProgress = {
@@ -249,8 +261,8 @@ export class YoutubeDownloader implements BaseDownloader {
 
         ls.on('close', (code: number | null) => {
           if (code === 0) {
-            logger.info('Download completed successfully');
-            resolve({ success: true });
+            logger.info(`Download completed successfully: ${finalPath}`);
+            resolve({ success: true, filePath: finalPath });
           } else {
             logger.error(`Download failed with exit code ${code}. Error: ${lastError.trim()}`);
             resolve({ success: false, error: lastError || `Exited with code ${code}` });

@@ -87,6 +87,8 @@
 </div>
 
 <div class="main-content">
+<div class="content-wrapper">
+<div class="left-column">
 <div class="container">
   <div class="header-wrapper">
     <button class="settings-btn" (click)="toggleSettings()" title="Settings">
@@ -198,6 +200,30 @@
       <span class="log-message">{{ entry.message }}</span>
     </div>
   </div>
+</div>
+</div>
+
+<!-- History Card -->
+<div class="history-container">
+  <span class="section-title">Download History</span>
+  <div class="history-list">
+    <div *ngFor="let item of downloadHistory()" class="history-item">
+      <img [src]="item.thumbnail" alt="Thumb" class="history-thumbnail">
+      <div class="history-details">
+        <h4 class="history-title" [title]="item.title">{{ item.title }}</h4>
+        <div class="history-actions">
+          <a class="history-link" (click)="openFileFolder(item.filePath)">Show in folder</a>
+          <button class="delete-btn" (click)="deleteHistoryItem(item.id)" title="Remove from history">
+            <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+    <div *ngIf="downloadHistory().length === 0" class="no-history">
+      Your download history is empty
+    </div>
+  </div>
+</div>
 </div>
 
 </div>
