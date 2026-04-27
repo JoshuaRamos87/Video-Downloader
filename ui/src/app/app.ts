@@ -331,7 +331,11 @@ export class App implements OnInit {
     const info = this.videoInfo();
     if (!info || !info.formats) return ['All'];
     const exts = new Set<string>();
-    info.formats.forEach((f: any) => exts.add(f.ext));
+    info.formats.forEach((f: any) => {
+      if (f.ext !== 'mhtml') {
+        exts.add(f.ext);
+      }
+    });
     return ['All', ...Array.from(exts).sort()];
   }
 

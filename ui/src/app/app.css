@@ -709,13 +709,7 @@ button:disabled {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 0.5rem;
-}
-
-.clear-logs-btn {
-  padding: 0.2rem 0.6rem;
-  font-size: 0.75rem;
-  background: var(--bg-button);
+  margin-bottom: 1rem;
 }
 
 .log-content {

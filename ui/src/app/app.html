@@ -139,7 +139,7 @@
           <label for="format">Select Format ({{ filteredFormats.length }} options):</label>
           <select id="format" [ngModel]="selectedFormatId()" (ngModelChange)="selectedFormatId.set($event)" [disabled]="isDownloading()">
             <option *ngFor="let f of filteredFormats" [value]="f.id">
-              {{ f.resolution }} - {{ f.ext.toUpperCase() }} ({{ formatBytes(f.filesize) }}) {{ f.note }}
+              {{ f.resolution }} - {{ f.ext.toUpperCase() }} <ng-container *ngIf="f.filesize > 0">({{ formatBytes(f.filesize) }})</ng-container> {{ f.note }}
             </option>
           </select>
         </div>

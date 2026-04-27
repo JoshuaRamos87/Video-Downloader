@@ -169,15 +169,19 @@ export class YoutubeDownloader implements BaseDownloader {
           else if (f.height) resolution = `${f.height}p`;
           else if (isAudio) resolution = 'Audio only';
 
+          // Only use quality if it's a descriptive string, not a ranking number
+          const qualityNote = (typeof f.quality === 'string' && !/^\d+$/.test(f.quality)) ? f.quality : '';
+          const formatNote = f.format_note || '';
+
           return {
             id: (f.itag?.toString() || f.format_id) as string,
             ext: ((f.mime_type ? f.mime_type.split(';')[0].split('/')[1] : f.ext) || 'mp4') as string,
             resolution,
             filesize: parseInt(f.content_length || f.filesize || f.filesize_approx) || 0,
-            note: `${f.quality || ''} ${f.format_note || ''}`.trim()
+            note: `${qualityNote} ${formatNote}`.trim()
           };
         })
-        .filter(f => f.resolution !== 'Unknown');
+        .filter(f => f.resolution !== 'Unknown' && f.ext !== 'mhtml' && f.filesize > 0);
 
       formats.sort((a, b) => {
         if (a.resolution === 'Audio only' && b.resolution !== 'Audio only') return 1;
