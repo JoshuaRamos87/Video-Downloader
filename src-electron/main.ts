@@ -11,6 +11,9 @@ import {
   DownloadResult 
 } from './interfaces.js';
 
+// Force UTF-8 for child processes (especially yt-dlp on Windows)
+process.env.PYTHONIOENCODING = 'utf-8';
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -99,18 +102,38 @@ ipcMain.handle('get-all-logs', async () => {
   return logger.getLogs();
 });
 
-ipcMain.handle('delete-file', async (_event, fullPath: string): Promise<{ success: boolean; error?: string }> => {
+ipcMain.handle('delete-history-item', async (_event, id: string): Promise<void> => {
+  const config = loadConfig();
+  if (config.downloadHistory) {
+    config.downloadHistory = config.downloadHistory.filter(item => item.id !== id);
+    saveConfig(config);
+    logger.info(`History item removed: ${id}`);
+  }
+});
+
+ipcMain.handle('delete-file', async (_event, id: string): Promise<{ success: boolean; error?: string }> => {
   try {
+    const config = loadConfig();
+    const item = config.downloadHistory?.find(i => i.id === id);
+    
+    if (!item) {
+      logger.warn(`Item not found in history for deletion: ${id}`);
+      return { success: false, error: 'Item not found in history' };
+    }
+
+    let fullPath = item.filePath;
     if (fs.existsSync(fullPath)) {
       await shell.trashItem(fullPath);
       logger.info(`File moved to trash: ${fullPath}`);
       return { success: true };
     } else {
-      logger.warn(`File not found for deletion: ${fullPath}`);
-      return { success: false, error: 'File not found' };
+      logger.warn(`File not found on disk for deletion: ${fullPath}`);
+      const buf = Buffer.from(fullPath, 'utf8');
+      logger.debug(`Path hex: ${buf.toString('hex')}`);
+      return { success: false, error: 'File not found on disk' };
     }
   } catch (error: any) {
-    logger.error(`Error deleting file ${fullPath}: ${error.message}`);
+    logger.error(`Error deleting file for ID ${id}: ${error.message}`);
     return { success: false, error: error.message };
   }
 });

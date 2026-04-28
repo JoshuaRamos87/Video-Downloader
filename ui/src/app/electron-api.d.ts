@@ -52,7 +52,8 @@ export interface ElectronAPI {
   windowMaximize: () => void;
   windowClose: () => void;
   openPath: (path: string) => Promise<void>;
-  deleteFile: (path: string) => Promise<{ success: boolean; error?: string }>;
+  deleteFile: (id: string) => Promise<{ success: boolean; error?: string }>;
+  deleteHistoryItem: (id: string) => Promise<void>;
   getAllLogs: () => Promise<LogEntry[]>;
   onNewLog: (callback: (entry: LogEntry) => void) => void;
   log: (level: string, message: string, ...args: any[]) => void;

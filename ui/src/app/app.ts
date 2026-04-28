@@ -365,8 +365,9 @@ export class App implements OnInit {
   async deleteHistoryItem(id: string) {
     this.downloadHistory.update(h => h.filter(item => item.id !== id));
     if (this.api) {
-      const config = await this.api.getConfig();
-      await this.api.setConfig({ ...config, downloadHistory: this.downloadHistory() });
+      // Use the dedicated backend handler to ensure config.json is in sync
+      await this.api.deleteHistoryItem(id);
+      this.api.log('INFO', `History item ${id} deleted`);
     }
     this.activeHistoryMenu.set(null);
   }
@@ -388,16 +389,17 @@ export class App implements OnInit {
   async deleteFileWithHistory(item: any) {
     if (!this.api) return;
     
-    this.api.log('INFO', `Attempting to delete file and history for: ${item.title}`);
-    const result = await this.api.deleteFile(item.filePath);
+    this.api.log('INFO', `Attempting to delete file and history for item ID: ${item.id}`);
+    const result = await this.api.deleteFile(item.id);
     
     if (result.success) {
       this.showToast('File moved to trash');
+      // Only remove from history if the file operation actually worked
+      await this.deleteHistoryItem(item.id);
     } else {
       this.api.log('ERROR', `Failed to delete file: ${result.error}`);
       this.showToast(`Error: ${result.error || 'Could not delete file'}`);
     }
-    await this.deleteHistoryItem(item.id);
   }
 
   get availableExtensions(): string[] {

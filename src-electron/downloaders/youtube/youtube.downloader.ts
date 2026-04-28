@@ -204,6 +204,7 @@ export class YoutubeDownloader implements BaseDownloader {
       return new Promise((resolve) => {
         const flags: any = {
           output: path.join(outputPath, '%(title)s.%(ext)s'),
+          restrictFilenames: true,
           newline: true,
           noCheckCertificates: true,
           progress: true,
@@ -215,7 +216,16 @@ export class YoutubeDownloader implements BaseDownloader {
         if (browser) flags.cookiesFromBrowser = browser;
 
         logger.debug(`Starting download process with browser cookies: ${browser || 'none'}`);
-        const ls = ytdl.exec(url, flags) as any;
+        // Pass environment variables explicitly to ensure UTF-8 output
+        const ls = ytdl.exec(url, flags, { 
+          env: { 
+            ...process.env, 
+            PYTHONIOENCODING: 'utf-8',
+            PYTHONUTF8: '1',
+            LANG: 'en_US.UTF-8',
+            LC_ALL: 'en_US.UTF-8'
+          } 
+        }) as any;
 
         let lastError = '';
         let finalPath = '';
@@ -226,7 +236,7 @@ export class YoutubeDownloader implements BaseDownloader {
 
         if (ls.stdout) {
           ls.stdout.on('data', (data: Buffer | string) => {
-            const line = data.toString();
+            const line = Buffer.isBuffer(data) ? data.toString('utf8') : data;
             
             // Try to extract destination path
             const destMatch = line.match(/\[download\] Destination: (.+)/);

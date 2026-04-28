@@ -49,9 +49,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
     console.log('[PRELOAD] openPath called');
     return ipcRenderer.invoke('open-path', path);
   },
-  deleteFile: (path) => {
+  deleteFile: (id) => {
     console.log('[PRELOAD] deleteFile called');
-    return ipcRenderer.invoke('delete-file', path);
+    return ipcRenderer.invoke('delete-file', id);
+  },
+  deleteHistoryItem: (id) => {
+    console.log('[PRELOAD] deleteHistoryItem called');
+    return ipcRenderer.invoke('delete-history-item', id);
   },
   getAllLogs: () => {
     return ipcRenderer.invoke('get-all-logs');
