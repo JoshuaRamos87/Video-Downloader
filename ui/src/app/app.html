@@ -225,12 +225,22 @@
     <div *ngFor="let item of downloadHistory()" class="history-item">
       <img [src]="item.thumbnail" alt="Thumb" class="history-thumbnail">
       <div class="history-details">
-        <h4 class="history-title" [title]="item.title">{{ item.title }}</h4>
+        <div class="history-item-header">
+          <h4 class="history-title" [title]="item.title">{{ item.title }}</h4>
+          <div class="history-menu-container">
+            <button class="history-menu-btn" (click)="toggleHistoryMenu($event, item.id)" title="Options">
+              <svg viewBox="0 0 24 24">
+                <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
+              </svg>
+            </button>
+            <div class="history-dropdown" [class.show]="activeHistoryMenu() === item.id">
+              <button (click)="deleteHistoryItem(item.id)">Delete from History</button>
+              <button class="danger" (click)="deleteFileWithHistory(item)">Delete File</button>
+            </div>
+          </div>
+        </div>
         <div class="history-actions">
           <a class="history-link" (click)="openFileFolder(item.filePath)">Show in folder</a>
-          <button class="delete-btn" (click)="deleteHistoryItem(item.id)" title="Remove from history">
-            <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
-          </button>
         </div>
       </div>
     </div>

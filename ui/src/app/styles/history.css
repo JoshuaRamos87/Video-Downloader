@@ -150,6 +150,13 @@
   min-width: 0;
 }
 
+.history-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
 .history-title {
   font-size: 0.9rem;
   font-weight: 600;
@@ -158,6 +165,78 @@
   overflow: hidden;
   text-overflow: ellipsis;
   color: var(--text-main);
+  flex: 1;
+}
+
+.history-menu-container {
+  position: relative;
+}
+
+.history-menu-btn {
+  background: none;
+  border: none;
+  padding: 4px;
+  color: var(--text-dim);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.history-menu-btn:hover {
+  background: var(--bg-container);
+  color: var(--accent-primary);
+}
+
+.history-menu-btn svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
+
+.history-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: var(--bg-container);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px var(--shadow-color);
+  z-index: 1100;
+  display: none;
+  min-width: 150px;
+  overflow: hidden;
+}
+
+.history-dropdown.show {
+  display: flex;
+  flex-direction: column;
+}
+
+.history-dropdown button {
+  background: none;
+  border: none;
+  padding: 0.75rem 1rem;
+  text-align: left;
+  color: var(--text-main);
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: background-color 0.2s;
+  white-space: nowrap;
+}
+
+.history-dropdown button:hover {
+  background: var(--bg-video-info);
+}
+
+.history-dropdown button.danger {
+  color: var(--accent-error);
+}
+
+.history-dropdown button.danger:hover {
+  background: rgba(255, 68, 68, 0.1);
 }
 
 .history-actions {
@@ -176,28 +255,6 @@
 
 .history-link:hover {
   text-decoration: underline;
-}
-
-.delete-btn {
-  background: none;
-  border: none;
-  padding: 0;
-  color: var(--text-dim);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: color 0.2s;
-}
-
-.delete-btn:hover {
-  color: var(--accent-error);
-}
-
-.delete-btn svg {
-  width: 16px;
-  height: 16px;
-  fill: currentColor;
 }
 
 .no-history {

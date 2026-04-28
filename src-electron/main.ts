@@ -99,6 +99,22 @@ ipcMain.handle('get-all-logs', async () => {
   return logger.getLogs();
 });
 
+ipcMain.handle('delete-file', async (_event, fullPath: string): Promise<{ success: boolean; error?: string }> => {
+  try {
+    if (fs.existsSync(fullPath)) {
+      await shell.trashItem(fullPath);
+      logger.info(`File moved to trash: ${fullPath}`);
+      return { success: true };
+    } else {
+      logger.warn(`File not found for deletion: ${fullPath}`);
+      return { success: false, error: 'File not found' };
+    }
+  } catch (error: any) {
+    logger.error(`Error deleting file ${fullPath}: ${error.message}`);
+    return { success: false, error: error.message };
+  }
+});
+
 ipcMain.handle('open-path', async (_event, fullPath: string): Promise<void> => {
   try {
     if (fs.existsSync(fullPath)) {

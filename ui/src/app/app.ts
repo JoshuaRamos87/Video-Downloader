@@ -49,6 +49,7 @@ export class App implements OnInit {
   });
 
   downloadHistory = signal<any[]>([]);
+  activeHistoryMenu = signal<string | null>(null);
 
   // Computed theme class based on selection and OS setting
   themeClass = computed(() => {
@@ -367,6 +368,36 @@ export class App implements OnInit {
       const config = await this.api.getConfig();
       await this.api.setConfig({ ...config, downloadHistory: this.downloadHistory() });
     }
+    this.activeHistoryMenu.set(null);
+  }
+
+  toggleHistoryMenu(event: Event, id: string) {
+    event.stopPropagation();
+    if (this.activeHistoryMenu() === id) {
+      this.activeHistoryMenu.set(null);
+    } else {
+      this.activeHistoryMenu.set(id);
+    }
+  }
+
+  @HostListener('document:click')
+  closeMenus() {
+    this.activeHistoryMenu.set(null);
+  }
+
+  async deleteFileWithHistory(item: any) {
+    if (!this.api) return;
+    
+    this.api.log('INFO', `Attempting to delete file and history for: ${item.title}`);
+    const result = await this.api.deleteFile(item.filePath);
+    
+    if (result.success) {
+      this.showToast('File moved to trash');
+    } else {
+      this.api.log('ERROR', `Failed to delete file: ${result.error}`);
+      this.showToast(`Error: ${result.error || 'Could not delete file'}`);
+    }
+    await this.deleteHistoryItem(item.id);
   }
 
   get availableExtensions(): string[] {
