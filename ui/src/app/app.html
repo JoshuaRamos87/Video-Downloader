@@ -222,7 +222,7 @@
     </button>
   </div>
   <div class="history-list">
-    <div *ngFor="let item of downloadHistory()" class="history-item">
+    <div *ngFor="let item of downloadHistory()" class="history-item" [class.menu-active]="activeHistoryMenu() === item.id">
       <img [src]="item.thumbnail" alt="Thumb" class="history-thumbnail">
       <div class="history-details">
         <div class="history-item-header">
