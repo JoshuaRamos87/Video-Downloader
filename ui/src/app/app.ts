@@ -51,6 +51,8 @@ export class App implements OnInit {
 
   downloadHistory = signal<any[]>([]);
   activeHistoryMenu = signal<string | null>(null);
+  showWipeConfirm = signal(false);
+  isWiping = signal(false);
 
   // Computed theme class based on selection and OS setting
   themeClass = computed(() => {
@@ -433,6 +435,55 @@ export class App implements OnInit {
     } catch (err: any) {
       if (this.api) this.api.log('ERROR', `Failed to copy link: ${err.message}`);
       this.showToast('Failed to copy link');
+    }
+  }
+
+  confirmWipeHistory() {
+    this.showWipeConfirm.set(true);
+  }
+
+  cancelWipeHistory() {
+    this.showWipeConfirm.set(false);
+  }
+
+  async wipeAllHistory() {
+    if (!this.api || this.isWiping()) return;
+
+    this.isWiping.set(true);
+    this.api.log('INFO', 'Starting WIPE ALL HISTORY operation');
+
+    try {
+      const items = [...this.downloadHistory()];
+      
+      // Attempt to delete files for all history items
+      for (const item of items) {
+        try {
+          await this.api.deleteFile(item.id);
+        } catch (err) {
+          // Ignore errors (e.g. file not found)
+          this.api.log('DEBUG', `Skipping file deletion for ${item.id} during wipe`);
+        }
+      }
+
+      // Clear history in config
+      const config = await this.api.getConfig();
+      await this.api.setConfig({ ...config, downloadHistory: [] });
+      
+      // Update local state
+      this.ngZone.run(() => {
+        this.downloadHistory.set([]);
+        this.showWipeConfirm.set(false);
+        this.isWiping.set(false);
+        this.showToast('History wiped and files deleted!');
+      });
+
+      this.api.log('INFO', 'WIPE ALL HISTORY operation completed successfully');
+    } catch (err: any) {
+      this.api.log('ERROR', `Error during wipe operation: ${err.message}`);
+      this.ngZone.run(() => {
+        this.isWiping.set(false);
+        this.showToast('Failed to complete wipe operation');
+      });
     }
   }
 

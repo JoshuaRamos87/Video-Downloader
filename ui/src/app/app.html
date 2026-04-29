@@ -94,6 +94,12 @@
           <input type="checkbox" [checked]="enableDownloadHistory()" (change)="toggleDownloadHistorySetting()">
           Enable Download History
         </label>
+        
+        <div class="settings-divider"></div>
+        
+        <button class="wipe-history-btn danger-btn" (click)="confirmWipeHistory()" [disabled]="downloadHistory().length === 0">
+          WIPE ALL HISTORY
+        </button>
       </div>
     </div>
   </div>
@@ -265,4 +271,26 @@
 </div>
 </div>
 
+</div>
+
+<!-- Modal Overlay for Wipe History Confirmation -->
+<div class="modal-overlay" *ngIf="showWipeConfirm()" (click)="cancelWipeHistory()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <svg viewBox="0 0 24 24" class="modal-icon danger">
+        <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>
+      </svg>
+      <h3>Wipe All History?</h3>
+    </div>
+    <div class="modal-body">
+      <p>This will <strong>permanently delete</strong> all downloads from your history and attempt to delete all associated files on your system.</p>
+      <p class="modal-subtext">If a file is not found, it will simply be removed from history.</p>
+    </div>
+    <div class="modal-actions">
+      <button class="cancel-btn" (click)="cancelWipeHistory()" [disabled]="isWiping()">Cancel</button>
+      <button class="danger-btn" (click)="wipeAllHistory()" [disabled]="isWiping()">
+        {{ isWiping() ? 'Wiping...' : 'OK, Wipe Everything' }}
+      </button>
+    </div>
+  </div>
 </div>
