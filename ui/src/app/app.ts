@@ -25,10 +25,11 @@ export class App implements OnInit {
   // Settings and Theme State
   isSettingsOpen = signal(false);
   isHistoryOpen = signal(false);
-  settingsView = signal<'main' | 'themes' | 'dev'>('main');
+  settingsView = signal<'main' | 'themes' | 'dev' | 'history'>('main');
   selectedTheme = signal<string>('system'); // 'system', 'dark', 'light', 'sepia', 'dracula', 'nord'
   osTheme = signal<string>('light');
   showDevLogs = signal(false);
+  enableDownloadHistory = signal(true);
   logs = signal<any[]>([]);
   private toastTimeout: any;
 
@@ -151,6 +152,10 @@ export class App implements OnInit {
             this.downloadHistory.set(config.downloadHistory);
             this.api.log('INFO', `Loaded ${config.downloadHistory.length} history items`);
           }
+          if (config.enableDownloadHistory !== undefined) {
+            this.enableDownloadHistory.set(config.enableDownloadHistory);
+            this.api.log('INFO', `Loaded history visibility from config: ${config.enableDownloadHistory}`);
+          }
         });
       }
     }
@@ -176,7 +181,7 @@ export class App implements OnInit {
     this.isHistoryOpen.update(v => !v);
   }
 
-  openSubmenu(view: 'themes' | 'dev') {
+  openSubmenu(view: 'themes' | 'dev' | 'history') {
     this.settingsView.set(view);
   }
 
@@ -188,6 +193,7 @@ export class App implements OnInit {
     switch(this.settingsView()) {
       case 'themes': return 'Settings > Themes';
       case 'dev': return 'Settings > Developer';
+      case 'history': return 'Settings > Download History';
       default: return 'Settings';
     }
   }
@@ -199,6 +205,21 @@ export class App implements OnInit {
       const config = await this.api.getConfig();
       await this.api.setConfig({ ...config, theme: theme });
       this.api.log('INFO', `Saved theme preference: ${theme}`);
+    }
+  }
+
+  async toggleDownloadHistorySetting() {
+    const newValue = !this.enableDownloadHistory();
+    this.enableDownloadHistory.set(newValue);
+    
+    if (this.api) {
+      const config = await this.api.getConfig();
+      await this.api.setConfig({ ...config, enableDownloadHistory: newValue });
+      this.api.log('INFO', `Download history visibility toggled: ${newValue}`);
+      
+      if (!newValue) {
+        this.isHistoryOpen.set(false);
+      }
     }
   }
 

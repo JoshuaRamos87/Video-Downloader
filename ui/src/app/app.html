@@ -39,6 +39,9 @@
           <button (click)="openSubmenu('themes')">Themes</button>
         </li>
         <li>
+          <button (click)="openSubmenu('history')">Download History</button>
+        </li>
+        <li>
           <button (click)="openSubmenu('dev')">Developer Settings</button>
         </li>
       </ul>
@@ -80,6 +83,16 @@
         <label class="theme-option">
           <input type="checkbox" [checked]="showDevLogs()" (change)="toggleDevLogs()">
           Show Output Logs
+        </label>
+      </div>
+    </div>
+
+    <!-- Download History Settings View -->
+    <div *ngIf="settingsView() === 'history'">
+      <div class="theme-options">
+        <label class="theme-option">
+          <input type="checkbox" [checked]="enableDownloadHistory()" (change)="toggleDownloadHistorySetting()">
+          Enable Download History
         </label>
       </div>
     </div>
@@ -203,9 +216,9 @@
 </div>
 </div>
 
-<div class="history-overlay" [class.open]="isHistoryOpen()" (click)="toggleHistory()"></div>
+<div class="history-overlay" *ngIf="enableDownloadHistory()" [class.open]="isHistoryOpen()" (click)="toggleHistory()"></div>
 
-<div class="history-toggle-bar" (click)="toggleHistory()">
+<div class="history-toggle-bar" *ngIf="enableDownloadHistory()" (click)="toggleHistory()">
   <!-- Double chevron pointing left -->
   <svg viewBox="0 0 24 24">
     <path d="M17.59 18L19 16.59 14.42 12 19 7.41 17.59 6l-6 6z"/>
@@ -214,7 +227,7 @@
 </div>
 
 <!-- History Card -->
-<div class="history-container" [class.open]="isHistoryOpen()">
+<div class="history-container" *ngIf="enableDownloadHistory()" [class.open]="isHistoryOpen()">
   <div class="history-header">
     <span class="section-title">Download History</span>
     <button class="history-close-btn" (click)="toggleHistory()">

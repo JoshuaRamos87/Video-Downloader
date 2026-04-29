@@ -12,6 +12,7 @@ export interface AppConfig {
   showDevLogs?: boolean;
   theme?: string;
   downloadHistory?: DownloadHistoryItem[];
+  enableDownloadHistory?: boolean;
 }
 
 export interface VideoFormat {
