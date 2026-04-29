@@ -4,6 +4,7 @@ export interface DownloadHistoryItem {
   thumbnail: string;
   filePath: string;
   timestamp: number;
+  originalUrl?: string;
 }
 
 export interface AppConfig {

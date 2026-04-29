@@ -325,7 +325,8 @@ export class App implements OnInit {
               title: info.title || 'Unknown Video',
               thumbnail: info.thumbnail || '',
               filePath: result.filePath || this.outputPath(),
-              timestamp: Date.now()
+              timestamp: Date.now(),
+              originalUrl: this.url()
             };
             this.downloadHistory.update(h => [newItem, ...h]);
             
@@ -399,6 +400,18 @@ export class App implements OnInit {
     } else {
       this.api.log('ERROR', `Failed to delete file: ${result.error}`);
       this.showToast(`Error: ${result.error || 'Could not delete file'}`);
+    }
+  }
+
+  async copyOriginalLink(url: string) {
+    try {
+      await navigator.clipboard.writeText(url);
+      this.showToast('Link copied to clipboard!');
+      this.activeHistoryMenu.set(null);
+      if (this.api) this.api.log('INFO', 'Original link copied to clipboard from history');
+    } catch (err: any) {
+      if (this.api) this.api.log('ERROR', `Failed to copy link: ${err.message}`);
+      this.showToast('Failed to copy link');
     }
   }
 

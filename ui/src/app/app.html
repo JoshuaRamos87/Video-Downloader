@@ -234,6 +234,7 @@
               </svg>
             </button>
             <div class="history-dropdown" [class.show]="activeHistoryMenu() === item.id">
+              <button *ngIf="item.originalUrl" (click)="copyOriginalLink(item.originalUrl)">Copy original download link</button>
               <button (click)="deleteHistoryItem(item.id)">Delete from History</button>
               <button class="danger" (click)="deleteFileWithHistory(item)">Delete File</button>
             </div>
