@@ -38,6 +38,7 @@ export interface DownloadRequest {
   url: string;
   outputPath: string;
   formatId: string;
+  ext?: string;
 }
 
 export interface ElectronAPI {

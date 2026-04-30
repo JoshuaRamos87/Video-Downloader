@@ -216,6 +216,18 @@ export class YoutubeDownloader implements BaseDownloader {
           jsRuntime: 'node'
         };
 
+        if (request.ext === 'mp4') {
+          // yt-dlp's default "bestvideo+bestaudio" often mixes mp4 video with webm (opus) audio.
+          // When this happens, it merges them into a .webm or .mkv container to avoid quality loss,
+          // ignoring the user's explicit choice for an mp4 file.
+          // To fix this, we force the output container to mp4 and prefer m4a (AAC) audio.
+          flags.mergeOutputFormat = 'mp4';
+          flags.format = formatId ? `${formatId}+bestaudio[ext=m4a]/bestaudio` : 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best';
+        } else if (request.ext === 'webm') {
+          // Explicitly prioritize webm merging if the user requested it.
+          flags.mergeOutputFormat = 'webm';
+        }
+
         if (browser) flags.cookiesFromBrowser = browser;
 
         logger.debug(`Starting download process with browser cookies: ${browser || 'none'}`);

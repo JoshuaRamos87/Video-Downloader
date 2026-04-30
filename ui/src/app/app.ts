@@ -357,10 +357,14 @@ export class App implements OnInit {
     this.progress.set({ percent: 0, speed: '', eta: '', totalSize: '' });
 
     try {
+      const info = this.videoInfo();
+      const selectedFormat = info?.formats?.find((f: any) => f.id === this.selectedFormatId());
+      
       const result = await this.api.downloadVideo({
         url: this.url(),
         outputPath: this.outputPath(),
-        formatId: this.selectedFormatId()
+        formatId: this.selectedFormatId(),
+        ext: selectedFormat?.ext
       });
 
       this.ngZone.run(async () => {
