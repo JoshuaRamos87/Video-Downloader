@@ -73,10 +73,17 @@ export class InstagramDownloader implements BaseDownloader {
         return getVal(b.resolution) - getVal(a.resolution);
       });
 
+      // Try to find the best thumbnail from the array if the main one is missing or restricted
+      let thumbnail = info.thumbnail || '';
+      if (Array.isArray(info.thumbnails) && info.thumbnails.length > 0) {
+        // Usually the last one is the highest resolution/best link
+        thumbnail = info.thumbnails[info.thumbnails.length - 1].url || thumbnail;
+      }
+
       return {
         success: true,
         title: info.title || info.description?.substring(0, 50) || 'Instagram Video',
-        thumbnail: info.thumbnail || '',
+        thumbnail: thumbnail,
         formats: formats.length > 0 ? formats : [{ id: 'best', ext: 'mp4', resolution: 'Best Quality', filesize: 0, note: '' }]
       };
     } catch (error: any) {
