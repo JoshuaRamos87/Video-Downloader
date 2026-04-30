@@ -261,6 +261,140 @@
   background: var(--bg-button-hover);
 }
 
+/* Modal Extensions */
+.modal-content.large {
+  max-width: 600px;
+  width: 95%;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-close-header {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: -1rem;
+}
+
+.modal-close-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0.5rem;
+}
+
+.modal-close-btn:hover {
+  color: var(--accent-primary);
+}
+
+.modal-close-btn svg {
+  width: 24px;
+  height: 24px;
+  fill: currentColor;
+}
+
+/* About Page Styles */
+.about-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  overflow-y: auto;
+  flex: 1;
+  padding-right: 0.5rem;
+}
+
+/* Custom scrollbar for about content */
+.about-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.about-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.about-content::-webkit-scrollbar-thumb {
+  background: var(--bg-button);
+  border-radius: 10px;
+}
+
+.about-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.app-icon.xlarge {
+  width: 80px;
+  height: 80px;
+}
+
+.version-text {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.about-section.center {
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.about-section h4 {
+  margin: 0 0 1rem 0;
+  font-size: 1rem;
+  color: var(--accent-primary);
+}
+
+.notices-scroll-container {
+  /* Removed fixed overflow here to let parent handle it better */
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.notice-item {
+  margin-bottom: 0.5rem;
+}
+
+.notice-title {
+  font-weight: bold;
+  display: block;
+  margin-bottom: 0.2rem;
+}
+
+.notice-meta {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-family: monospace;
+  margin-bottom: 0.5rem;
+}
+
+.notice-text {
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.license-scroll-box {
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 1rem;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.license-text {
+  font-family: monospace;
+  font-size: 0.75rem;
+  line-height: 1.2;
+  white-space: pre-wrap;
+  margin: 0;
+  color: var(--text-dim);
+}
+
 .custom-titlebar {
   display: flex;
   justify-content: center;
