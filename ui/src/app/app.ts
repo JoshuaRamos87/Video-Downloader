@@ -7,13 +7,12 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
   standalone: true,
   imports: [FormsModule, CommonModule],
   templateUrl: './app.html',
-  styleUrl: './app.css'
+  styleUrl: './app.css',
+  host: {
+    '[class]': 'themeClass()'
+  }
 })
 export class App implements OnInit {
-  @HostBinding('class') get hostClass() {
-    return this.themeClass();
-  }
-
   url = signal('');
   outputPath = signal('');
   status = signal('');
@@ -74,7 +73,6 @@ export class App implements OnInit {
         this.api.log('DEBUG', `Clipboard content on focus: ${clipboardText ? 'length ' + clipboardText.length : 'empty'}`);
         if (clipboardText) {
           const trimmedText = clipboardText.trim();
-          // Regex to check for a basic video URL (including YouTube and Twitter/X)
           const isVideoUrl = /^(https?:\/\/)?(www\.)?((youtube\.com\/(watch\?v=|shorts\/)|youtu\.be\/)[a-zA-Z0-9_-]{11}|(twitter\.com|x\.com)\/.*\/status\/\d+)/.test(trimmedText);
 
           if (isVideoUrl) {
@@ -135,32 +133,35 @@ export class App implements OnInit {
   async ngOnInit() {
     if (isPlatformBrowser(this.platformId)) {
       if (this.api) {
-        // Load persisted config
-        const config = await this.api.getConfig();
-        this.ngZone.run(async () => {
-          if (config.outputPath) {
-            this.outputPath.set(config.outputPath);
-            this.api.log('INFO', `Loaded output path from config: ${config.outputPath}`);
-          }
-          if (config.theme) {
-            this.selectedTheme.set(config.theme);
-            this.api.log('INFO', `Loaded theme from config: ${config.theme}`);
-          }
-          if (config.showDevLogs) {
-            this.showDevLogs.set(true);
-            const allLogs = await this.api.getAllLogs();
-            this.logs.set(allLogs);
-            this.scrollToBottom();
-          }
-          if (config.downloadHistory) {
-            this.downloadHistory.set(config.downloadHistory);
-            this.api.log('INFO', `Loaded ${config.downloadHistory.length} history items`);
-          }
-          if (config.enableDownloadHistory !== undefined) {
-            this.enableDownloadHistory.set(config.enableDownloadHistory);
-            this.api.log('INFO', `Loaded history visibility from config: ${config.enableDownloadHistory}`);
-          }
-        });
+        try {
+          // Load persisted config
+          const config = await this.api.getConfig();
+          
+          // Apply state updates inside the Angular zone
+          this.ngZone.run(async () => {
+            if (config.outputPath) {
+              this.outputPath.set(config.outputPath);
+            }
+            if (config.theme) {
+              this.selectedTheme.set(config.theme);
+              this.api.log('INFO', `Theme initialized from config: ${config.theme}`);
+            }
+            if (config.showDevLogs) {
+              this.showDevLogs.set(true);
+              const allLogs = await this.api.getAllLogs();
+              this.logs.set(allLogs);
+              this.scrollToBottom();
+            }
+            if (config.downloadHistory) {
+              this.downloadHistory.set(config.downloadHistory);
+            }
+            if (config.enableDownloadHistory !== undefined) {
+              this.enableDownloadHistory.set(config.enableDownloadHistory);
+            }
+          });
+        } catch (err: any) {
+          if (this.api) this.api.log('ERROR', `Failed to initialize app config: ${err.message}`);
+        }
       }
     }
   }
