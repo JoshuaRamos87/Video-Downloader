@@ -81,7 +81,14 @@ export class App implements OnInit {
         this.api.log('DEBUG', `Clipboard content on focus: ${clipboardText ? 'length ' + clipboardText.length : 'empty'}`);
         if (clipboardText) {
           const trimmedText = clipboardText.trim();
-          const isVideoUrl = /^(https?:\/\/)?(www\.)?((youtube\.com\/(watch\?v=|shorts\/)|youtu\.be\/)[a-zA-Z0-9_-]{11}|(twitter\.com|x\.com)\/.*\/status\/\d+)/.test(trimmedText);
+          
+          const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/(watch\?v=|shorts\/)|youtu\.be\/)[a-zA-Z0-9_-]{11}/;
+          const twitterRegex = /^(https?:\/\/)?(www\.)?(twitter\.com|x\.com)\/.*\/status\/\d+/;
+          const redditRegex = /^(https?:\/\/)?(www\.)?(reddit\.com|redd\.it)\//;
+
+          const isVideoUrl = youtubeRegex.test(trimmedText) || 
+                             twitterRegex.test(trimmedText) || 
+                             redditRegex.test(trimmedText);
 
           if (isVideoUrl) {
             this.ngZone.run(() => {
