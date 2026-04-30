@@ -202,8 +202,11 @@ export class YoutubeDownloader implements BaseDownloader {
     
     const startDownload = (browser: string | null): Promise<DownloadResult> => {
       return new Promise((resolve) => {
+        // Generate a short unique string based on current time to prevent overwrites
+        const uniqueSuffix = Date.now().toString(36);
+        
         const flags: any = {
-          output: path.join(outputPath, '%(title)s.%(ext)s'),
+          output: path.join(outputPath, `%(title)s_${uniqueSuffix}.%(ext)s`),
           restrictFilenames: true,
           newline: true,
           noCheckCertificates: true,
