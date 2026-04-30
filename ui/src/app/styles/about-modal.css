@@ -1,0 +1,33 @@
+/* About Page Styles */
+.about-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  overflow-y: auto;
+  flex: 1;
+  padding-right: 0.5rem;
+}
+
+.about-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.app-icon.xlarge {
+  width: 80px;
+  height: 80px;
+}
+
+.version-text {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.about-section.center {
+  text-align: center;
+  flex-shrink: 0;
+}

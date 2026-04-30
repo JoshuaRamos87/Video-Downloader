@@ -1,6 +1,9 @@
 @import './styles/themes.css';
 @import './styles/layout.css';
-@import './styles/menus-titlebar.css';
+@import './styles/titlebar.css';
+@import './styles/settings-menu.css';
+@import './styles/modals.css';
+@import './styles/about-modal.css';
 @import './styles/video-controls.css';
 @import './styles/history.css';
 @import './styles/status-logs.css';
