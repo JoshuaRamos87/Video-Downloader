@@ -194,15 +194,37 @@
   gap: 0.5rem;
 }
 
+.history-title-container {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+  min-width: 0;
+  height: 1.4rem; /* Match line height */
+}
+
 .history-title {
   font-size: 0.9rem;
   font-weight: 600;
-  margin: 0 0 0.4rem 0;
+  margin: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   color: var(--text-main);
-  flex: 1;
+  width: 100%;
+  display: block;
+}
+
+.history-item:hover .history-title {
+  text-overflow: clip;
+  overflow: visible;
+  width: max-content;
+  animation: marquee 8s linear infinite alternate;
+}
+
+@keyframes marquee {
+  from { transform: translateX(0); }
+  /* We use -100% and add the container width back in */
+  to { transform: translateX(calc(min(0px, 180px - 100%))); }
 }
 
 .history-menu-container {

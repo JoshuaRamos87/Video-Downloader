@@ -261,7 +261,9 @@
       <img [src]="item.thumbnail" alt="Thumb" class="history-thumbnail">
       <div class="history-details">
         <div class="history-item-header">
-          <h4 class="history-title" [title]="item.title">{{ item.title }}</h4>
+          <div class="history-title-container">
+            <h4 class="history-title" [title]="item.title">{{ item.title }}</h4>
+          </div>
           <div class="history-menu-container">
             <button class="history-menu-btn" (click)="toggleHistoryMenu($event, item.id)" title="Options">
               <svg viewBox="0 0 24 24">
