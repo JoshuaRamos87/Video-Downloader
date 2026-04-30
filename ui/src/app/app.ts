@@ -48,9 +48,20 @@ export class App implements OnInit {
   });
 
   downloadHistory = signal<any[]>([]);
+  historySearchQuery = signal<string>('');
   activeHistoryMenu = signal<string | null>(null);
   showWipeConfirm = signal(false);
   isWiping = signal(false);
+
+  // Computed filtered history based on search query
+  filteredDownloadHistory = computed(() => {
+    const query = this.historySearchQuery().toLowerCase().trim();
+    const history = this.downloadHistory();
+    if (!query) return history;
+    return history.filter(item => 
+      item.title?.toLowerCase().includes(query)
+    );
+  });
 
   // Computed theme class based on selection and OS setting
   themeClass = computed(() => {

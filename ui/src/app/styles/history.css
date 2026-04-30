@@ -20,6 +20,39 @@
   margin-bottom: 0.5rem;
 }
 
+.history-search-wrapper {
+  position: relative;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+}
+
+.history-search-input {
+  width: 100%;
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 0.6rem 2.5rem 0.6rem 0.8rem;
+  color: var(--text-main);
+  font-size: 0.9rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.history-search-input:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 2px rgba(255, 0, 0, 0.1);
+}
+
+.search-icon {
+  position: absolute;
+  right: 10px;
+  width: 18px;
+  height: 18px;
+  fill: var(--text-dim);
+  pointer-events: none;
+}
+
 .history-close-btn {
   display: none;
   background: none;
