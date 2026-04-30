@@ -1,4 +1,4 @@
-import { Component, signal, computed, OnInit, Inject, PLATFORM_ID, HostListener, NgZone, HostBinding } from '@angular/core';
+import { Component, signal, computed, OnInit, Inject, PLATFORM_ID, HostListener, NgZone, effect, Renderer2, ElementRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 
@@ -7,10 +7,7 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
   standalone: true,
   imports: [FormsModule, CommonModule],
   templateUrl: './app.html',
-  styleUrl: './app.css',
-  host: {
-    '[class]': 'themeClass()'
-  }
+  styleUrl: './app.css'
 })
 export class App implements OnInit {
   url = signal('');
@@ -96,8 +93,23 @@ export class App implements OnInit {
 
   constructor(
     @Inject(PLATFORM_ID) private platformId: Object,
-    private ngZone: NgZone
+    private ngZone: NgZone,
+    private renderer: Renderer2,
+    private el: ElementRef
   ) {
+    // Explicitly manage theme classes using an effect
+    effect(() => {
+      const className = this.themeClass();
+      if (isPlatformBrowser(this.platformId)) {
+        const themes = ['theme-dark', 'theme-light', 'theme-sepia', 'theme-dracula', 'theme-nord'];
+        // Clean up existing theme classes
+        themes.forEach(t => this.renderer.removeClass(this.el.nativeElement, t));
+        // Apply the new theme class
+        this.renderer.addClass(this.el.nativeElement, className);
+        if (this.api) this.api.log('DEBUG', `Theme effect applied class: ${className}`);
+      }
+    });
+
     if (isPlatformBrowser(this.platformId)) {
       const api = (window as any).electronAPI;
       if (api) {
@@ -134,18 +146,21 @@ export class App implements OnInit {
     if (isPlatformBrowser(this.platformId)) {
       if (this.api) {
         try {
-          // Load persisted config
+          this.api.log('INFO', 'Loading configuration from Electron...');
           const config = await this.api.getConfig();
           
-          // Apply state updates inside the Angular zone
           this.ngZone.run(async () => {
             if (config.outputPath) {
               this.outputPath.set(config.outputPath);
             }
+            
             if (config.theme) {
+              this.api.log('INFO', `Setting theme from config: ${config.theme}`);
               this.selectedTheme.set(config.theme);
-              this.api.log('INFO', `Theme initialized from config: ${config.theme}`);
+            } else {
+              this.api.log('INFO', 'No theme found in config, using default (system)');
             }
+
             if (config.showDevLogs) {
               this.showDevLogs.set(true);
               const allLogs = await this.api.getAllLogs();
@@ -160,7 +175,7 @@ export class App implements OnInit {
             }
           });
         } catch (err: any) {
-          if (this.api) this.api.log('ERROR', `Failed to initialize app config: ${err.message}`);
+          this.api.log('ERROR', `Failed to initialize app config: ${err.message}`);
         }
       }
     }
