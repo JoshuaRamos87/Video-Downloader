@@ -37,14 +37,14 @@
     }
   },
   "dependencies": {
-    "ffmpeg-static": "^5.2.0",
+    "ffmpeg-static": "^5.3.0",
     "youtube-dl-exec": "^3.1.5",
     "youtubei.js": "^17.0.1"
   },
   "devDependencies": {
-    "@types/node": "^22.13.4",
-    "electron": "^34.3.0",
+    "@types/node": "^25.6.0",
+    "electron": "^41.4.0",
     "electron-builder": "^26.8.1",
-    "typescript": "^5.7.3"
+    "typescript": "^6.0.3"
   }
 }
