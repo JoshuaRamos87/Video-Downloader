@@ -86,11 +86,13 @@ export class App implements OnInit {
           const twitterRegex = /^(https?:\/\/)?(www\.)?(twitter\.com|x\.com)\/.*\/status\/\d+/;
           const redditRegex = /^(https?:\/\/)?(www\.)?(reddit\.com|redd\.it)\//;
           const instagramRegex = /^(https?:\/\/)?(www\.)?instagram\.com\/(p|reel|tv)\//;
+          const tiktokRegex = /^(https?:\/\/)?(www\.)?(tiktok\.com|vm\.tiktok\.com)\//;
 
           const isVideoUrl = youtubeRegex.test(trimmedText) || 
                              twitterRegex.test(trimmedText) || 
                              redditRegex.test(trimmedText) ||
-                             instagramRegex.test(trimmedText);
+                             instagramRegex.test(trimmedText) ||
+                             tiktokRegex.test(trimmedText);
 
           if (isVideoUrl) {
             this.ngZone.run(() => {
@@ -576,11 +578,23 @@ export class App implements OnInit {
     const ext = this.selectedExtension();
     const res = this.selectedResolution();
 
-    return info.formats.filter((f: any) => {
+    const filtered = info.formats.filter((f: any) => {
       const matchExt = ext === 'All' || f.ext === ext;
       const matchRes = res === 'All' || f.resolution === res;
       return matchExt && matchRes;
     });
+
+    const uniqueFormats = [];
+    const seen = new Set();
+    for (const f of filtered) {
+      const key = `${f.resolution}-${f.ext}-${f.filesize}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        uniqueFormats.push(f);
+      }
+    }
+
+    return uniqueFormats;
   }
 
   onFilterChange() {
