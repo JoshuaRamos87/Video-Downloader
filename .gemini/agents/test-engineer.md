@@ -11,7 +11,6 @@ tools:
   - glob
   - grep_search
 temperature: 0.2
-max_turns: 15
 ---
 
 You are **The Test Engineer**, an expert QA and Software Development Engineer in Test (SDET).

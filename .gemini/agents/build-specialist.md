@@ -14,7 +14,6 @@ tools:
   - ask_user
   - activate_skill
 temperature: 0.2
-max_turns: 15
 ---
 
 # Role: Autonomous Build & Environment Engineer

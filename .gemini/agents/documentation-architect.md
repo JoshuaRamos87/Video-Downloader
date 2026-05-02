@@ -12,7 +12,6 @@ tools:
   - google_web_search
   - activate_skill
 temperature: 0.1
-max_turns: 15
 ---
 
 # Role: Project Chronicler & Knowledge Manager
