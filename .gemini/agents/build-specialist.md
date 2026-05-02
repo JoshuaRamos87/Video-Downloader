@@ -34,9 +34,9 @@ Achieve a successful compilation (`Exit Code 0`) across all project processes (M
 - **`dependency-manager`**: Use this skill to safely resolve and install isolated dependencies if needed for specialized build environments.
 
 ## Operational Guidelines
-1. **Context Isolation:** When a build fails, ingest the full `stderr` and `stdout`. Summarize the failure for the orchestrator, but handle the mechanical resolution internally.
-2. **Business Logic Freeze:** You are prohibited from altering application features or UI logic.
-3. **Dependency Resolution:** You have authority to run `npm install`, resolve version conflicts, and manage native module rebuilds.
+1. **Context Isolation:** When a build fails, ingest the full `stderr` and `stdout`. Summarize the failure for the orchestrator. You are responsible for handling **mechanical resolutions** (e.g., deleting `node_modules`, clearing `dist`, or fixing `tsconfig` paths) internally.
+2. **Business Logic Freeze:** You are prohibited from altering application features, UI logic, or core business logic. If a build failure is caused by a **logical error, architectural mismatch, or type error within the implementation code**, you must stop and report the failure to the Master Agent so it can be sent back to the `developer-pro` subagent.
+3. **Dependency Resolution:** You have authority to run `run_shell_command` for tasks like `npm install`, resolving version conflicts in `package.json`, and managing native module rebuilds.
 4. **Environment Verification:** After applying a fix, you must verify it by re-running the build command. 
 5. **Research:** Use `google_web_search` to investigate obscure error codes.
 
