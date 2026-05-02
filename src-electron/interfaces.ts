@@ -21,6 +21,7 @@ export interface VideoFormat {
   resolution: string;
   filesize: number;
   note: string;
+  thumbnail?: string;
 }
 
 export interface VideoInfoResponse {

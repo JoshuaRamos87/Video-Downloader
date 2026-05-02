@@ -198,15 +198,23 @@ button:disabled {
 }
 
 .sniffer-item-icon {
-  width: 40px;
-  height: 40px;
+  width: 120px;
+  height: 68px;
   background: var(--bg-input);
-  border-radius: 50%;
+  border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
   color: var(--accent-primary);
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+}
+
+.sniffer-thumbnail {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .sniffer-item-info {
