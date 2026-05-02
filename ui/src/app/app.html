@@ -153,7 +153,7 @@
                (mouseleave)="hoveredPreviewUrl.set(null)">
             <div class="sniffer-item-icon">
               <ng-container *ngIf="hoveredPreviewUrl() === f.previewUrl && f.previewUrl; else staticThumb">
-                <video [src]="f.previewUrl" class="sniffer-thumbnail preview-video" autoplay muted loop></video>
+                <video [src]="f.previewUrl" class="sniffer-thumbnail preview-video" autoplay [muted]="true" loop></video>
               </ng-container>
               <ng-template #staticThumb>
                 <img *ngIf="f.thumbnail; else defaultIcon" [src]="f.thumbnail" class="sniffer-thumbnail">
@@ -187,7 +187,7 @@
                (mouseenter)="hoveredPreviewUrl.set(videoInfo().previewUrl)" 
                (mouseleave)="hoveredPreviewUrl.set(null)">
             <ng-container *ngIf="hoveredPreviewUrl() === videoInfo().previewUrl && videoInfo().previewUrl; else staticMainThumb">
-              <video [src]="videoInfo().previewUrl" class="thumbnail preview-video" autoplay muted loop></video>
+              <video [src]="videoInfo().previewUrl" class="thumbnail preview-video" autoplay [muted]="true" loop></video>
             </ng-container>
             <ng-template #staticMainThumb>
               <img [src]="videoInfo().thumbnail" alt="Thumbnail" class="thumbnail">
