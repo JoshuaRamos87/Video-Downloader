@@ -65,8 +65,8 @@ describe('YoutubeDownloader', () => {
       expect(result.success).toBe(true);
       if (result.success) {
         expect(result.title).toBe('YTDL Title');
-        expect(result.formats.length).toBeGreaterThan(0);
-        expect(result.formats[0].resolution).toBe('1080p');
+        expect(result.formats!.length).toBeGreaterThan(0);
+        expect(result.formats![0].resolution).toBe('1080p');
       }
     });
 
@@ -77,8 +77,8 @@ describe('YoutubeDownloader', () => {
       expect(result.success).toBe(true);
       if (result.success) {
         expect(result.title).toBe('Mock YouTube Video');
-        expect(result.formats.length).toBeGreaterThan(0);
-        expect(result.formats[0].resolution).toBe('360p');
+        expect(result.formats!.length).toBeGreaterThan(0);
+        expect(result.formats![0].resolution).toBe('360p');
       }
     });
 
@@ -94,13 +94,13 @@ describe('YoutubeDownloader', () => {
   describe('downloadVideo', () => {
     it('should complete download successfully', async () => {
       mockExecFn.mockReturnValue({
-        stdout: { on: vi.fn((event, cb) => {
+        stdout: { on: vi.fn((event: string, cb: any) => {
           if (event === 'data') {
             cb('[download] Destination: /mock/output/video.mp4\n');
           }
         })},
         stderr: { on: vi.fn() },
-        on: vi.fn((event, cb) => {
+        on: vi.fn((event: string, cb: any) => {
           if (event === 'close') cb(0);
         }),
         catch: vi.fn()
@@ -116,10 +116,10 @@ describe('YoutubeDownloader', () => {
     it('should return error on download failure', async () => {
        mockExecFn.mockReturnValue({
         stdout: { on: vi.fn() },
-        stderr: { on: vi.fn((event, cb) => {
+        stderr: { on: vi.fn((event: string, cb: any) => {
           if (event === 'data') cb('Mock error log');
         })},
-        on: vi.fn((event, cb) => {
+        on: vi.fn((event: string, cb: any) => {
           if (event === 'close') cb(1);
         }),
         catch: vi.fn()

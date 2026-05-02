@@ -54,8 +54,8 @@ describe('RedditDownloader', () => {
       expect(result.success).toBe(true);
       if (result.success) {
         expect(result.title).toBe('Reddit Video');
-        expect(result.formats.length).toBeGreaterThan(0);
-        expect(result.formats[0].resolution).toBe('720p');
+        expect(result.formats!.length).toBeGreaterThan(0);
+        expect(result.formats![0].resolution).toBe('720p');
       }
     });
 
@@ -73,13 +73,13 @@ describe('RedditDownloader', () => {
   describe('downloadVideo', () => {
     it('should complete download successfully', async () => {
       mockExecFn.mockReturnValue({
-        stdout: { on: vi.fn((event, cb) => {
+        stdout: { on: vi.fn((event: string, cb: any) => {
           if (event === 'data') {
             cb('[download] Destination: /mock/output/reddit_video.mp4\n');
           }
         })},
         stderr: { on: vi.fn() },
-        on: vi.fn((event, cb) => {
+        on: vi.fn((event: string, cb: any) => {
           if (event === 'close') cb(0);
         }),
         catch: vi.fn()

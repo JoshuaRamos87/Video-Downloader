@@ -54,8 +54,8 @@ describe('InstagramDownloader', () => {
       expect(result.success).toBe(true);
       if (result.success) {
         expect(result.title).toBe('Instagram Video');
-        expect(result.formats.length).toBeGreaterThan(0);
-        expect(result.formats[0].resolution).toBe('1080p');
+        expect(result.formats!.length).toBeGreaterThan(0);
+        expect(result.formats![0].resolution).toBe('1080p');
       }
     });
 
@@ -71,7 +71,7 @@ describe('InstagramDownloader', () => {
       expect(result.success).toBe(true);
       if (result.success) {
         expect(result.title).toBe('Instagram Video Cookie');
-        expect(result.formats[0].resolution).toBe('720p');
+        expect(result.formats![0].resolution).toBe('720p');
       }
     });
   });
@@ -79,13 +79,13 @@ describe('InstagramDownloader', () => {
   describe('downloadVideo', () => {
     it('should complete download successfully', async () => {
       mockExecFn.mockReturnValue({
-        stdout: { on: vi.fn((event, cb) => {
+        stdout: { on: vi.fn((event: string, cb: any) => {
           if (event === 'data') {
             cb('[download] Destination: /mock/output/ig_video.mp4\n');
           }
         })},
         stderr: { on: vi.fn() },
-        on: vi.fn((event, cb) => {
+        on: vi.fn((event: string, cb: any) => {
           if (event === 'close') cb(0);
         }),
         catch: vi.fn()

@@ -139,48 +139,79 @@
   <div *ngIf="videoInfo()">
     <span class="section-title">Video details:</span>
     <div class="video-info">
-    <div class="video-header">
-      <img [src]="videoInfo().thumbnail" alt="Thumbnail" class="thumbnail">
-      <div class="video-details">
-        <h3>{{ videoInfo().title }}</h3>
-
-        <div class="filters">
-          <div class="filter-group">
-            <label for="extFilter">Extension:</label>
-            <select id="extFilter" [ngModel]="selectedExtension()" (ngModelChange)="selectedExtension.set($event); onFilterChange()" [disabled]="isDownloading()">
-              <option *ngFor="let ext of availableExtensions" [value]="ext">{{ ext === 'All' ? 'All' : ext.toUpperCase() }}</option>
-            </select>
-          </div>
-          <div class="filter-group">
-            <label for="resFilter">Resolution:</label>
-            <select id="resFilter" [ngModel]="selectedResolution()" (ngModelChange)="selectedResolution.set($event); onFilterChange()" [disabled]="isDownloading()">
-              <option *ngFor="let res of availableResolutions" [value]="res">{{ res }}</option>
-            </select>
+      <!-- Custom UI for general sniffer -->
+      <div *ngIf="isGeneralSniffedResult(); else standardVideoUI" class="sniffer-results">
+        <div class="sniffer-results-header">
+          <p class="sniffer-hint">We discovered {{ videoInfo().formats.length }} media source(s) on the page. Please select the correct one to download.</p>
+        </div>
+        <div class="sniffer-list">
+          <div *ngFor="let f of videoInfo().formats" 
+               class="sniffer-item" 
+               [class.selected]="selectedFormatId() === f.id"
+               (click)="selectedFormatId.set(f.id)">
+            <div class="sniffer-item-icon">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                <path d="M10 8l6 4-6 4V8z"/><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
+              </svg>
+            </div>
+            <div class="sniffer-item-info">
+              <span class="sniffer-item-url" [title]="f.id">{{ f.id }}</span>
+              <div class="sniffer-item-tags">
+                <span class="tag" [class.hls]="f.resolution === 'Streaming (HLS)'">{{ f.resolution }}</span>
+                <span class="tag ext">{{ f.ext.toUpperCase() }}</span>
+              </div>
+            </div>
+            <div class="sniffer-item-check">
+              <div class="radio-circle"></div>
+            </div>
           </div>
         </div>
-
-        <div *ngIf="filteredFormats.length > 1; else singleFormat">
-          <label for="format">Select Format ({{ filteredFormats.length }} options):</label>
-          <select id="format" [ngModel]="selectedFormatId()" (ngModelChange)="selectedFormatId.set($event)" [disabled]="isDownloading()">
-            <option *ngFor="let f of filteredFormats" [value]="f.id">
-              {{ f.resolution }} - {{ f.ext.toUpperCase() }} <ng-container *ngIf="f.filesize > 0">({{ formatBytes(f.filesize) }})</ng-container> {{ f.note }}
-            </option>
-          </select>
-        </div>
-        <ng-template #singleFormat>
-          <div class="single-format-message" *ngIf="filteredFormats.length === 1">
-            <p>✅ Only one format matches your filters! Ready to download.</p>
-            <small>{{ filteredFormats[0].resolution }} - {{ filteredFormats[0].ext.toUpperCase() }} ({{ formatBytes(filteredFormats[0].filesize) }})</small>
-          </div>
-          <div class="single-format-message error" *ngIf="filteredFormats.length === 0">
-            <p>❌ No formats match your filters.</p>
-          </div>
-        </ng-template>
-
       </div>
+
+      <!-- Standard UI for known platforms -->
+      <ng-template #standardVideoUI>
+        <div class="video-header">
+          <img [src]="videoInfo().thumbnail" alt="Thumbnail" class="thumbnail">
+          <div class="video-details">
+            <h3>{{ videoInfo().title }}</h3>
+
+            <div class="filters">
+              <div class="filter-group">
+                <label for="extFilter">Extension:</label>
+                <select id="extFilter" [ngModel]="selectedExtension()" (ngModelChange)="selectedExtension.set($event); onFilterChange()" [disabled]="isDownloading()">
+                  <option *ngFor="let ext of availableExtensions" [value]="ext">{{ ext === 'All' ? 'All' : ext.toUpperCase() }}</option>
+                </select>
+              </div>
+              <div class="filter-group">
+                <label for="resFilter">Resolution:</label>
+                <select id="resFilter" [ngModel]="selectedResolution()" (ngModelChange)="selectedResolution.set($event); onFilterChange()" [disabled]="isDownloading()">
+                  <option *ngFor="let res of availableResolutions" [value]="res">{{ res }}</option>
+                </select>
+              </div>
+            </div>
+
+            <div *ngIf="filteredFormats.length > 1; else singleFormat">
+              <label for="format">Select Format ({{ filteredFormats.length }} options):</label>
+              <select id="format" [ngModel]="selectedFormatId()" (ngModelChange)="selectedFormatId.set($event)" [disabled]="isDownloading()">
+                <option *ngFor="let f of filteredFormats" [value]="f.id">
+                  {{ f.resolution }} - {{ f.ext.toUpperCase() }} <ng-container *ngIf="f.filesize > 0">({{ formatBytes(f.filesize) }})</ng-container> {{ f.note }}
+                </option>
+              </select>
+            </div>
+            <ng-template #singleFormat>
+              <div class="single-format-message" *ngIf="filteredFormats.length === 1">
+                <p>✅ Only one format matches your filters! Ready to download.</p>
+                <small>{{ filteredFormats[0].resolution }} - {{ filteredFormats[0].ext.toUpperCase() }} ({{ formatBytes(filteredFormats[0].filesize) }})</small>
+              </div>
+              <div class="single-format-message error" *ngIf="filteredFormats.length === 0">
+                <p>❌ No formats match your filters.</p>
+              </div>
+            </ng-template>
+          </div>
+        </div>
+      </ng-template>
     </div>
   </div>
-</div>
 
   <div *ngIf="isDownloading()" class="progress-section">
     <div class="progress-bar-container">

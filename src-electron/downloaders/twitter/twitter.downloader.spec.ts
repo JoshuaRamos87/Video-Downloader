@@ -57,7 +57,7 @@ describe('TwitterDownloader', () => {
         })
       });
 
-      (https.request as any).mockImplementation((url, options, cb) => {
+      (https.request as any).mockImplementation((url: any, options: any, cb: any) => {
         const res = { statusCode: 200, headers: { 'content-length': '5000' } };
         cb(res);
         return { on: vi.fn(), end: vi.fn() };
@@ -67,8 +67,8 @@ describe('TwitterDownloader', () => {
       expect(result.success).toBe(true);
       if (result.success) {
         expect(result.title).toContain('Test User');
-        expect(result.formats.length).toBeGreaterThan(0);
-        expect(result.formats[0].resolution).toBe('720x1280');
+        expect(result.formats!.length).toBeGreaterThan(0);
+        expect(result.formats![0].resolution).toBe('720x1280');
       }
     });
 
@@ -86,7 +86,7 @@ describe('TwitterDownloader', () => {
           })
         });
 
-      (https.request as any).mockImplementation((url, options, cb) => {
+      (https.request as any).mockImplementation((url: any, options: any, cb: any) => {
         const res = { statusCode: 200, headers: { 'content-length': '5000' } };
         cb(res);
         return { on: vi.fn(), end: vi.fn() };
@@ -96,8 +96,8 @@ describe('TwitterDownloader', () => {
       expect(result.success).toBe(true);
       if (result.success) {
         expect(result.title).toContain('Test User');
-        expect(result.formats.length).toBeGreaterThan(0);
-        expect(result.formats[0].resolution).toBe('1280x720');
+        expect(result.formats!.length).toBeGreaterThan(0);
+        expect(result.formats![0].resolution).toBe('1280x720');
       }
     });
   });
@@ -110,7 +110,7 @@ describe('TwitterDownloader', () => {
       
       (fs.createWriteStream as any).mockReturnValue(mockFileStream);
       
-      (https.get as any).mockImplementation((url, cb) => {
+      (https.get as any).mockImplementation((url: any, cb: any) => {
         const res = Object.assign(mockStream, {
           statusCode: 200,
           headers: { 'content-length': '100' },

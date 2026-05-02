@@ -53,6 +53,12 @@ export class App implements OnInit {
   showWipeConfirm = signal(false);
   isWiping = signal(false);
 
+  // Detection for Sniffer UI
+  isGeneralSniffedResult = computed(() => {
+    const info = this.videoInfo();
+    return !!(info && info.title && (info.title.startsWith('http') || info.title.includes('Media found on')));
+  });
+
   // Computed filtered history based on search query
   filteredDownloadHistory = computed(() => {
     const query = this.historySearchQuery().toLowerCase().trim();
@@ -301,7 +307,11 @@ export class App implements OnInit {
 
     this.api.log('INFO', `Requesting info for URL: ${this.url()}`);
     this.isFetchingInfo.set(true);
-    this.status.set('Fetching video information...');
+    
+    // Check if it's a platform we know, otherwise show 'Sniffing'
+    const isPlatform = /(youtube\.com|youtu\.be|twitter\.com|x\.com|reddit\.com|redd\.it|instagram\.com|tiktok\.com)/i.test(this.url());
+    this.status.set(isPlatform ? 'Fetching video information...' : 'Sniffing media from page (this may take 10s)...');
+    
     this.videoInfo.set(null);
 
     try {
@@ -311,6 +321,12 @@ export class App implements OnInit {
 
         if (result.success) {
           this.api.log('INFO', `Successfully fetched info for: ${result.title}`);
+          
+          // For GeneralDownloader, use the first format's URL as the title if multiple sources are found
+          if (result.title?.startsWith('Media found on') && result.formats?.length > 0) {
+            result.title = result.formats[0].id;
+          }
+
           this.videoInfo.set(result);
           this.selectedExtension.set('All');
           this.selectedResolution.set('All');

@@ -3,6 +3,7 @@ import { TwitterDownloader } from './twitter/twitter.downloader.js';
 import { RedditDownloader } from './reddit/reddit.downloader.js';
 import { InstagramDownloader } from './instagram/instagram.downloader.js';
 import { TiktokDownloader } from './tiktok/tiktok.downloader.js';
+import { GeneralDownloader } from './general/general.downloader.js';
 import { BaseDownloader } from '../interfaces.js';
 
 export class DownloaderFactory {
@@ -11,6 +12,7 @@ export class DownloaderFactory {
   private static redditDownloader = new RedditDownloader();
   private static instagramDownloader = new InstagramDownloader();
   private static tiktokDownloader = new TiktokDownloader();
+  private static generalDownloader = new GeneralDownloader();
 
   static getDownloader(url: string): BaseDownloader {
     const youtubeRegex = /(?:youtube\.com|youtu\.be)/i;
@@ -39,6 +41,6 @@ export class DownloaderFactory {
       return this.tiktokDownloader;
     }
 
-    throw new Error('Unsupported platform. Please provide a YouTube, Twitter/X, Reddit, Instagram, or TikTok URL.');
+    return this.generalDownloader;
   }
 }

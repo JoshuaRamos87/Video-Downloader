@@ -35,7 +35,7 @@ vi.mock('../../logger.js', () => ({
 
 vi.mock('node:readline', () => ({
   createInterface: vi.fn().mockReturnValue({
-    on: vi.fn((event, cb) => {
+    on: vi.fn((event: string, cb: any) => {
       if (event === 'line') cb('[download] Destination: /mock/output/tiktok.mp4');
     }),
     close: vi.fn()
@@ -64,8 +64,8 @@ describe('TiktokDownloader', () => {
       expect(result.success).toBe(true);
       if (result.success) {
         expect(result.title).toBe('TikTok Video');
-        expect(result.formats.length).toBeGreaterThan(0);
-        expect(result.formats[0].resolution).toBe('1080p');
+        expect(result.formats!.length).toBeGreaterThan(0);
+        expect(result.formats![0].resolution).toBe('1080p');
       }
     });
 
@@ -88,7 +88,7 @@ describe('TiktokDownloader', () => {
           pipe: vi.fn()
         },
         stderr: { on: vi.fn() },
-        on: vi.fn((event, cb) => {
+        on: vi.fn((event: string, cb: any) => {
           if (event === 'close') cb(0);
         }),
         catch: vi.fn()

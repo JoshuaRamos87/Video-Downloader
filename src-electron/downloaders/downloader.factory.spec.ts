@@ -15,6 +15,7 @@ import { TwitterDownloader } from './twitter/twitter.downloader.js';
 import { RedditDownloader } from './reddit/reddit.downloader.js';
 import { InstagramDownloader } from './instagram/instagram.downloader.js';
 import { TiktokDownloader } from './tiktok/tiktok.downloader.js';
+import { GeneralDownloader } from './general/general.downloader.js';
 
 describe('DownloaderFactory', () => {
   it('should return YoutubeDownloader for YouTube URLs', () => {
@@ -42,7 +43,7 @@ describe('DownloaderFactory', () => {
     expect(DownloaderFactory.getDownloader('https://vm.tiktok.com/123')).toBeInstanceOf(TiktokDownloader);
   });
 
-  it('should throw an error for unsupported URLs', () => {
-    expect(() => DownloaderFactory.getDownloader('https://example.com/video')).toThrow('Unsupported platform');
+  it('should return GeneralDownloader for other URLs', () => {
+    expect(DownloaderFactory.getDownloader('https://example.com/video')).toBeInstanceOf(GeneralDownloader);
   });
 });
