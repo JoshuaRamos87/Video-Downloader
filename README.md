@@ -6,6 +6,7 @@ A sleek, desktop-based utility designed to streamline the process of archiving o
 
 - **Format Selection:** Automatically retrieves available media formats, allowing you to choose the specific resolution and file size that fits your needs.
 - **Smart Configuration:** rembembers your preferred download location between sessions for a seamless workflow.
+- **Video Preview on Hover:** Instantly preview video content by hovering over thumbnails before downloading.
 - **Real-Time Progress:** Features a detailed progress monitor showing download speed (MB/s), estimated time remaining, and completion percentage.
 - **Clean Interface:** Built with a modern, distraction-free UI designed for efficiency.
 - **Muxing Support:** Automatically handles the merging of high-quality video and audio streams into a single file.

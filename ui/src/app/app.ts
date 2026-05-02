@@ -34,6 +34,7 @@ export class App implements OnInit {
   // Video Info
   videoInfo = signal<any>(null);
   selectedFormatId = signal('');
+  hoveredPreviewUrl = signal<string | null>(null);
 
   // Filters
   selectedExtension = signal<string>('All');

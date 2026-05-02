@@ -195,7 +195,8 @@ export class GeneralDownloader implements BaseDownloader {
             filesize,
             note: `Source ${index + 1}`,
             thumbnail,
-            duration
+            duration,
+            previewUrl: isAudio || isStreaming ? undefined : link.url
           };
         }));
 
@@ -206,6 +207,7 @@ export class GeneralDownloader implements BaseDownloader {
           success: true,
           title: `Media found on ${new URL(url).hostname}`,
           thumbnail: formats.find(f => f.thumbnail)?.thumbnail || '',
+          previewUrl: formats.find(f => f.previewUrl)?.previewUrl || '',
           formats
         });
       }, 10000); // 10 seconds of sniffing

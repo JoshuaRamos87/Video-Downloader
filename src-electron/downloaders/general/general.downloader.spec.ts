@@ -1,11 +1,16 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { GeneralDownloader } from './general.downloader.js';
 
-const { mockYtdlFn, mockExecFn, mockOnBeforeRequest, mockOnHeadersReceived } = vi.hoisted(() => ({
+const { mockYtdlFn, mockExecFn, mockOnBeforeRequest, mockOnHeadersReceived, mockChildProcessExec } = vi.hoisted(() => ({
   mockYtdlFn: vi.fn(),
   mockExecFn: vi.fn(),
   mockOnBeforeRequest: vi.fn(),
-  mockOnHeadersReceived: vi.fn()
+  mockOnHeadersReceived: vi.fn(),
+  mockChildProcessExec: vi.fn()
+}));
+
+vi.mock('node:child_process', () => ({
+  exec: mockChildProcessExec
 }));
 
 vi.mock('youtube-dl-exec', () => {
@@ -61,6 +66,10 @@ describe('GeneralDownloader', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.useFakeTimers();
+    mockChildProcessExec.mockImplementation((cmd, options, callback) => {
+      const cb = typeof options === 'function' ? options : callback;
+      if (cb) cb(null, { stdout: Buffer.from(''), stderr: Buffer.from('') });
+    });
     downloader = new GeneralDownloader();
   });
 
@@ -97,6 +106,45 @@ describe('GeneralDownloader', () => {
         expect(result.formats!.length).toBe(2);
         expect(result.formats![0].id).toBe('https://example.com/video.mp4');
         expect(result.formats![1].id).toBe('https://example.com/stream');
+      }
+    });
+
+    it('should populate previewUrl for direct video links', async () => {
+      mockChildProcessExec.mockImplementation((cmd, options, callback) => {
+        callback(null, { stdout: Buffer.from(''), stderr: Buffer.from('') });
+      });
+
+      const infoPromise = downloader.getVideoInfo('https://example.com');
+
+      const onBeforeRequestCallback = mockOnBeforeRequest.mock.calls[0][1];
+      
+      // Simulate discovering a direct video link
+      onBeforeRequestCallback({ url: 'https://example.com/video.mp4' }, vi.fn());
+      
+      // Simulate discovering an audio link (should NOT have previewUrl)
+      onBeforeRequestCallback({ url: 'https://example.com/audio.mp3' }, vi.fn());
+
+      // Simulate discovering an HLS link (should NOT have previewUrl)
+      onBeforeRequestCallback({ url: 'https://example.com/playlist.m3u8' }, vi.fn());
+
+      vi.advanceTimersByTime(10000);
+
+      const result = await infoPromise;
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.formats!.length).toBe(3);
+        
+        const videoFormat = result.formats!.find(f => f.id === 'https://example.com/video.mp4');
+        expect(videoFormat?.previewUrl).toBe('https://example.com/video.mp4');
+        
+        const audioFormat = result.formats!.find(f => f.id === 'https://example.com/audio.mp3');
+        expect(audioFormat?.previewUrl).toBeUndefined();
+        
+        const hlsFormat = result.formats!.find(f => f.id === 'https://example.com/playlist.m3u8');
+        expect(hlsFormat?.previewUrl).toBeUndefined();
+
+        // Top level previewUrl should be the first available one
+        expect(result.previewUrl).toBe('https://example.com/video.mp4');
       }
     });
 

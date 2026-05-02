@@ -78,6 +78,11 @@ button:disabled {
   align-items: flex-start;
 }
 
+.thumbnail-container {
+  position: relative;
+  flex-shrink: 0;
+}
+
 .thumbnail {
   width: 180px;
   height: auto;
@@ -86,6 +91,11 @@ button:disabled {
   border-radius: 4px;
   box-shadow: 0 4px 8px var(--shadow-light);
   background: rgba(0, 0, 0, 0.05);
+}
+
+.preview-video {
+  object-fit: cover !important;
+  background: #000;
 }
 
 .video-details {

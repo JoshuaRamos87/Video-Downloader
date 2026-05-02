@@ -148,13 +148,20 @@
           <div *ngFor="let f of videoInfo().formats" 
                class="sniffer-item" 
                [class.selected]="selectedFormatId() === f.id"
-               (click)="selectedFormatId.set(f.id)">
+               (click)="selectedFormatId.set(f.id)"
+               (mouseenter)="hoveredPreviewUrl.set(f.previewUrl)"
+               (mouseleave)="hoveredPreviewUrl.set(null)">
             <div class="sniffer-item-icon">
-              <img *ngIf="f.thumbnail; else defaultIcon" [src]="f.thumbnail" class="sniffer-thumbnail">
-              <ng-template #defaultIcon>
-                <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
-                  <path d="M10 8l6 4-6 4V8z"/><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
-                </svg>
+              <ng-container *ngIf="hoveredPreviewUrl() === f.previewUrl && f.previewUrl; else staticThumb">
+                <video [src]="f.previewUrl" class="sniffer-thumbnail preview-video" autoplay muted loop></video>
+              </ng-container>
+              <ng-template #staticThumb>
+                <img *ngIf="f.thumbnail; else defaultIcon" [src]="f.thumbnail" class="sniffer-thumbnail">
+                <ng-template #defaultIcon>
+                  <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                    <path d="M10 8l6 4-6 4V8z"/><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
+                  </svg>
+                </ng-template>
               </ng-template>
             </div>
             <div class="sniffer-item-info">
@@ -176,7 +183,16 @@
       <!-- Standard UI for known platforms -->
       <ng-template #standardVideoUI>
         <div class="video-header">
-          <img [src]="videoInfo().thumbnail" alt="Thumbnail" class="thumbnail">
+          <div class="thumbnail-container" 
+               (mouseenter)="hoveredPreviewUrl.set(videoInfo().previewUrl)" 
+               (mouseleave)="hoveredPreviewUrl.set(null)">
+            <ng-container *ngIf="hoveredPreviewUrl() === videoInfo().previewUrl && videoInfo().previewUrl; else staticMainThumb">
+              <video [src]="videoInfo().previewUrl" class="thumbnail preview-video" autoplay muted loop></video>
+            </ng-container>
+            <ng-template #staticMainThumb>
+              <img [src]="videoInfo().thumbnail" alt="Thumbnail" class="thumbnail">
+            </ng-template>
+          </div>
           <div class="video-details">
             <h3>{{ videoInfo().title }}</h3>
 

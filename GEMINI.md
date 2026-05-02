@@ -17,6 +17,7 @@ Based on the completed codebase review, the application currently features:
 - **Format Selection & Filtering:** Users can paste a video URL and the UI displays available file types, sizes, and resolutions. Users can actively filter these formats by extension (e.g., MP4, WEBM) and resolution (e.g., 1080p, 720p).
 - **Smart Configuration / Saved State:** The application remembers the user's preferred save location and theme between sessions.
 - **Real-Time Download Progress:** A detailed progress monitor displays the download speed (MB/s), estimated time remaining (ETA), and a completion percentage/progress bar.
+- **Video Preview on Hover:** Hovering over a video thumbnail (in both standard and sniffed results) triggers a live video preview, providing an instant glimpse of the content.
 - **Automatic Muxing:** Seamlessly handles the merging of high-quality separate video and audio streams into a single output file to prevent quality loss.
 - **Clipboard Monitoring:** The app automatically reads the clipboard on window focus and auto-fills the input if a supported video URL is detected.
 - **Download History & Management:** A searchable history interface tracks all downloads. Users can copy original links, natively open the downloaded file's folder via OS integration, delete specific history items (and optionally the downloaded file itself), or wipe the entire history.
@@ -32,7 +33,8 @@ Based on the completed codebase review, the application currently features:
 To maintain context efficiency and project integrity, follow this tiered orchestration strategy when using sub-agents:
 
 ### 1. Specialized Agent Roles
-- **`documentation-architect`**: Use for maintaining the project's knowledge base (`GEMINI.md`, `README.md`, `New-Requirements.MD`). It ensures documentation stays synced with code changes.
+- **`documentation-architect`**: Use for maintaining the project's knowledge base (`GEMINI.md`, `README.md`, `New-Requirements.MD`).
+- **`New-Requirements.MD` Lifecycle**: This file is a **transient, task-scoped checklist**. It MUST only contain requirements for the current task. Completed items are moved to `GEMINI.md` as "Current Features" during Phase 5, and the file is reset for the next task.
 - **`developer-pro`**: Use for high-precision implementation of features, bug fixes, or UI components.
 - **`build-specialist`**: Use exclusively to verify build status, resolve dependency conflicts, or fix configuration issues.
 - **`test-engineer`**: Use to generate Vitest unit tests and ensure no regressions.

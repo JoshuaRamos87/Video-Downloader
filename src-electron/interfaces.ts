@@ -23,12 +23,14 @@ export interface VideoFormat {
   note: string;
   thumbnail?: string;
   duration?: string;
+  previewUrl?: string;
 }
 
 export interface VideoInfoResponse {
   success: boolean;
   title?: string;
   thumbnail?: string;
+  previewUrl?: string;
   formats?: VideoFormat[];
   error?: string;
 }
