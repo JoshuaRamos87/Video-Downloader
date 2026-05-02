@@ -25,33 +25,74 @@ const ytdl = create(ytdlpBinary);
 const fixedFfmpegPath = fixPath(ffmpegPath);
 
 export class GeneralDownloader implements BaseDownloader {
-  private async extractThumbnail(url: string): Promise<string> {
-    // Skip if it's not a likely video/audio URL or too long
-    if (url.length > 2048) return '';
+  private async getMediaMetadata(url: string, isAudio: boolean): Promise<{ thumbnail: string, duration: string }> {
+    if (url.length > 2048) return { thumbnail: '', duration: '' };
     
+    let thumbnail = '';
+    let duration = '';
     try {
-      // Use ffmpeg to extract a frame at 1 second
-      // -ss 1: seek to 1 second (faster than after -i)
-      // -i url: input
-      // -vframes 1: 1 frame
-      // -f image2: output as image
-      // -update 1: only one frame
-      // pipe:1: output to stdout
-      const cmd = `"${fixedFfmpegPath}" -ss 00:00:01 -i "${url}" -vframes 1 -f image2 -update 1 pipe:1`;
-      const { stdout } = await execPromise(cmd, { 
+      const cmd = isAudio 
+        ? `"${fixedFfmpegPath}" -i "${url}"` 
+        : `"${fixedFfmpegPath}" -ss 00:00:01 -i "${url}" -vframes 1 -f image2 -update 1 pipe:1`;
+      
+      const { stdout, stderr } = await execPromise(cmd, { 
         encoding: 'buffer', 
         maxBuffer: 5 * 1024 * 1024,
-        timeout: 5000 // 5 seconds timeout per thumbnail
+        timeout: 5000 
       });
       
-      if (stdout && stdout.length > 0) {
-        return `data:image/jpeg;base64,${stdout.toString('base64')}`;
+      if (!isAudio && stdout && stdout.length > 0) {
+        thumbnail = `data:image/jpeg;base64,${stdout.toString('base64')}`;
+      }
+      
+      if (stderr) {
+        const stderrStr = stderr.toString('utf-8');
+        const durationMatch = stderrStr.match(/Duration:\s*([\d:]+)/);
+        if (durationMatch && durationMatch[1]) {
+          duration = durationMatch[1];
+          if (duration.startsWith('00:')) {
+            duration = duration.substring(3);
+          }
+        }
       }
     } catch (err: any) {
-      // Common for audio or broken streams, don't spam logs
-      logger.debug(`GeneralDownloader: Thumbnail extraction failed for ${url.substring(0, 50)}: ${err.message}`);
+      if (err.stderr) {
+        const stderrStr = err.stderr.toString('utf-8');
+        const durationMatch = stderrStr.match(/Duration:\s*([\d:]+)/);
+        if (durationMatch && durationMatch[1]) {
+          duration = durationMatch[1];
+          if (duration.startsWith('00:')) {
+            duration = duration.substring(3);
+          }
+        }
+      }
+      if (!isAudio && !err.stderr) {
+        logger.debug(`GeneralDownloader: Metadata extraction failed for ${url.substring(0, 50)}: ${err.message}`);
+      }
     }
-    return '';
+    return { thumbnail, duration };
+  }
+
+  private async fetchFileSize(url: string): Promise<number> {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      const response = await fetch(url, { 
+        method: 'HEAD', 
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+      
+      if (response.ok) {
+        const contentLength = response.headers.get('content-length');
+        if (contentLength) {
+          return parseInt(contentLength, 10) || 0;
+        }
+      }
+    } catch (err: any) {
+      logger.debug(`GeneralDownloader: Failed to fetch filesize for ${url.substring(0, 50)}: ${err.message}`);
+    }
+    return 0;
   }
 
   async getVideoInfo(url: string): Promise<VideoInfoResponse> {
@@ -140,19 +181,21 @@ export class GeneralDownloader implements BaseDownloader {
           const isStreaming = link.type === 'm3u8' || link.url.includes('m3u8');
           const isAudio = ['mp3', 'm4a', 'wav', 'ogg'].includes(link.type.toLowerCase());
           
-          let thumbnail = '';
-          // Only attempt thumbnail extraction for video-like links
-          if (!isAudio) {
-            thumbnail = await this.extractThumbnail(link.url);
+          const { thumbnail, duration } = await this.getMediaMetadata(link.url, isAudio);
+
+          let filesize = 0;
+          if (!isStreaming) {
+            filesize = await this.fetchFileSize(link.url);
           }
 
           return {
             id: link.url,
             ext: isStreaming ? 'mp4' : link.type,
             resolution: isStreaming ? 'Streaming (HLS)' : 'Direct Link',
-            filesize: 0,
+            filesize,
             note: `Source ${index + 1}`,
-            thumbnail
+            thumbnail,
+            duration
           };
         }));
 

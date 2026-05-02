@@ -162,6 +162,8 @@
               <div class="sniffer-item-tags">
                 <span class="tag" [class.hls]="f.resolution === 'Streaming (HLS)'">{{ f.resolution }}</span>
                 <span class="tag ext">{{ f.ext.toUpperCase() }}</span>
+                <span class="tag duration" *ngIf="f.duration">⏱ {{ f.duration }}</span>
+                <span class="tag size" *ngIf="f.filesize > 0">{{ formatBytes(f.filesize) }}</span>
               </div>
             </div>
             <div class="sniffer-item-check">
