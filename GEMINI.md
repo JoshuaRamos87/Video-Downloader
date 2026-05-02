@@ -26,3 +26,31 @@ Based on the completed codebase review, the application currently features:
   - Optimized support for **YouTube** (full metadata retrieval, all quality levels).
   - Support for **Twitter / X** media extraction.
   - Support for **Reddit**, **TikTok**, and **Instagram** downloads is fully implemented.
+
+## Sub-Agent Orchestration & Workflow
+
+To maintain context efficiency and project integrity, follow this tiered orchestration strategy when using sub-agents:
+
+### 1. Specialized Agent Roles
+- **`documentation-architect`**: Use for maintaining the project's knowledge base (`GEMINI.md`, `README.md`, `New-Requirements.MD`). It ensures documentation stays synced with code changes.
+- **`developer-pro`**: Use for high-precision implementation of features, bug fixes, or UI components.
+- **`build-specialist`**: Use exclusively to verify build status, resolve dependency conflicts, or fix configuration issues.
+- **`test-engineer`**: Use to generate Vitest unit tests and ensure no regressions.
+- **`angular-expert`**: Use for complex UI design or Signal-based state management.
+
+### 2. Sequential "Pipeline" Orchestration
+For major features or architectural changes, follow this 5-phase pipeline to ensure a "Verified Correct" and fully documented state:
+
+1.  **Phase 1: Planning**: Invoke `documentation-architect` to outline the feature tasks in `New-Requirements.MD` and verify that the plan aligns with existing project rules.
+2.  **Phase 2: Development**: Invoke `developer-pro` to implement the logic, UI, and IPC bridge according to the requirements, ensuring the code matches modern Angular and Electron standards.
+3.  **Phase 3: Build Check**: Invoke `build-specialist` to run the project build, fix any compilation errors, and adjust configuration settings like CSS budgets if they cause failures.
+4.  **Phase 5: Testing**: Invoke `test-engineer` to write tests(if needed) and run existing unit tests to verify the new feature works as expected and doesn't break existing functionality.
+5.  **Phase 5: Review & Docs**: Invoke `documentation-architect` to check if the implementation matches the `New-Requirements.MD` list. If deviations are found, the architect must document them and report back to the Master Agent. The Master Agent will then decide to either send it back to Phase 2 for correction or update the user on this deviation to make the choice for the master agent. If compliant, update feature status and finalize documentation.
+
+### 3. Reporting Protocol
+Sub-agents must report a concise "Verification Summary" back to the main agent, including:
+- **Build Status**: (e.g., "Build Successful" or "Failed with Error X").
+- **Test Results**: (e.g., "All 5 tests passed").
+- **Action Taken**: Brief summary of modified files.
+
+The main agent (Orchestrator) is responsible for synthesizing these reports and providing the final update to the user. Do not return to the user until the Build Verification phase has passed.
