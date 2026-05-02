@@ -43,7 +43,7 @@ To maintain context efficiency and project integrity, follow this tiered orchest
 ### 2. Sequential "Pipeline" Orchestration
 For major features or architectural changes, follow this 5-phase pipeline to ensure a "Verified Correct" and fully documented state:
 
-1.  **Phase 1: Planning**: Invoke `documentation-architect` to outline the feature tasks in `New-Requirements.MD` and verify that the plan aligns with existing project rules.
+1.  **Phase 1: Planning**: Invoke `documentation-architect` to outline the feature tasks in `New-Requirements.MD`. The architect is responsible for using `ask_user` to clarify any ambiguities or missing specifications before finalizing the checklist and verifying alignment with project rules.
 2.  **Phase 2: Development**: Invoke `developer-pro` to implement the logic according to the requirements, ensuring the code matches modern Angular and Electron standards.
 3.  **Phase 3: Build Check**: Invoke `build-specialist` to run the project build. It is responsible for fixing "mechanical" errors (e.g., environment setup, dependency conflicts, CSS budgets). If a build failure is caused by an implementation error or logic flaw, it must generate a "Failure Report" and report back to the Master Agent to restart Phase 2.
 4.  **Phase 4: Testing**: Invoke `test-engineer` to write tests (if needed) or run existing unit tests to verify the new feature works as expected. If tests fail due to implementation flaws, it must report back to the Master Agent to restart Phase 2.
