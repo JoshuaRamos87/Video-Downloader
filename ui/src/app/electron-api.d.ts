@@ -1,7 +1,18 @@
+export interface DownloadHistoryItem {
+  id: string;
+  title: string;
+  thumbnail: string;
+  filePath: string;
+  timestamp: number;
+  originalUrl?: string;
+}
+
 export interface AppConfig {
   outputPath?: string;
-  theme?: string;
   showDevLogs?: boolean;
+  theme?: string;
+  downloadHistory?: DownloadHistoryItem[];
+  enableDownloadHistory?: boolean;
 }
 
 export interface LogEntry {
@@ -17,13 +28,28 @@ export interface VideoFormat {
   resolution: string;
   filesize: number;
   note: string;
+  thumbnail?: string;
+  duration?: string;
+  previewUrl?: string;
+}
+
+export interface PlaylistItem {
+  id: string;
+  title: string;
+  artist?: string;
+  thumbnail?: string;
+  url: string;
+  selected?: boolean;
 }
 
 export interface VideoInfoResponse {
   success: boolean;
   title?: string;
   thumbnail?: string;
+  previewUrl?: string;
   formats?: VideoFormat[];
+  isPlaylist?: boolean;
+  playlistItems?: PlaylistItem[];
   error?: string;
 }
 
@@ -39,6 +65,15 @@ export interface DownloadRequest {
   outputPath: string;
   formatId: string;
   ext?: string;
+  isPlaylistDownload?: boolean;
+}
+
+export interface PlaylistDownloadRequest {
+  urls: string[];
+  outputPath: string;
+  albumName: string;
+  formatId: string;
+  ext?: string;
 }
 
 export interface ElectronAPI {
@@ -48,7 +83,9 @@ export interface ElectronAPI {
   getVideoInfo: (url: string) => Promise<VideoInfoResponse>;
   readClipboard: () => Promise<string>;
   downloadVideo: (data: DownloadRequest) => Promise<{ success: boolean; error?: string }>;
+  downloadPlaylist: (data: PlaylistDownloadRequest) => Promise<{ success: boolean; error?: string }[]>;
   onDownloadProgress: (callback: (progress: DownloadProgress) => void) => void;
+  onPlaylistProgress: (callback: (data: { url: string, progress: DownloadProgress }) => void) => void;
   windowMinimize: () => void;
   windowMaximize: () => void;
   windowClose: () => void;

@@ -222,3 +222,67 @@ ipcMain.handle('download-video', async (_event, request: DownloadRequest): Promi
     return { success: false, error: error.message };
   }
 });
+
+ipcMain.handle('download-playlist', async (_event, request: any): Promise<DownloadResult[]> => {
+  logger.info(`Playlist download request: ${request.albumName} | ${request.urls.length} items`);
+  try {
+    // Sanitize album name for folder creation
+    const safeAlbumName = request.albumName.replace(/[<>:"/\\|?*]+/g, '_').trim() || 'Unknown Album';
+    const albumPath = path.join(request.outputPath, safeAlbumName);
+    
+    if (!fs.existsSync(albumPath)) {
+      fs.mkdirSync(albumPath, { recursive: true });
+    }
+
+    const results: DownloadResult[] = [];
+    const urls = [...request.urls];
+    const maxConcurrent = 5;
+    let activeCount = 0;
+    let currentIndex = 0;
+
+    return new Promise((resolve) => {
+      const processNext = async () => {
+        if (currentIndex >= urls.length && activeCount === 0) {
+          resolve(results);
+          return;
+        }
+
+        while (activeCount < maxConcurrent && currentIndex < urls.length) {
+          const url = urls[currentIndex++];
+          activeCount++;
+
+          const singleRequest: DownloadRequest = {
+            url,
+            outputPath: albumPath,
+            formatId: request.formatId,
+            ext: request.ext,
+            isPlaylistDownload: true
+          };
+
+          const downloader = DownloaderFactory.getDownloader(url);
+          
+          // Fire and forget the promise, but handle its resolution
+          downloader.downloadVideo(singleRequest, (progress) => {
+            if (win) {
+              // Send progress with URL to identify which track is progressing
+              win.webContents.send('playlist-progress', { url, progress });
+            }
+          }).then(result => {
+            results.push(result);
+            activeCount--;
+            processNext();
+          }).catch(error => {
+            results.push({ success: false, error: error.message });
+            activeCount--;
+            processNext();
+          });
+        }
+      };
+
+      processNext();
+    });
+  } catch (error: any) {
+    logger.error(`Error in download-playlist: ${error.message}`);
+    return [{ success: false, error: error.message }];
+  }
+});

@@ -1,4 +1,5 @@
 import { YoutubeDownloader } from './youtube/youtube.downloader.js';
+import { YtMusicDownloader } from './youtube/ytmusic.downloader.js';
 import { TwitterDownloader } from './twitter/twitter.downloader.js';
 import { RedditDownloader } from './reddit/reddit.downloader.js';
 import { InstagramDownloader } from './instagram/instagram.downloader.js';
@@ -8,6 +9,7 @@ import { BaseDownloader } from '../interfaces.js';
 
 export class DownloaderFactory {
   private static youtubeDownloader = new YoutubeDownloader();
+  private static ytMusicDownloader = new YtMusicDownloader();
   private static twitterDownloader = new TwitterDownloader();
   private static redditDownloader = new RedditDownloader();
   private static instagramDownloader = new InstagramDownloader();
@@ -15,11 +17,16 @@ export class DownloaderFactory {
   private static generalDownloader = new GeneralDownloader();
 
   static getDownloader(url: string): BaseDownloader {
+    const ytMusicRegex = /music\.youtube\.com/i;
     const youtubeRegex = /(?:youtube\.com|youtu\.be)/i;
     const twitterRegex = /(?:twitter\.com|x\.com)/i;
     const redditRegex = /(?:reddit\.com|redd\.it)/i;
     const instagramRegex = /(?:instagram\.com)\/(?:p|reel|tv)\//i;
     const tiktokRegex = /(?:tiktok\.com|vm\.tiktok\.com)/i;
+
+    if (ytMusicRegex.test(url)) {
+      return this.ytMusicDownloader;
+    }
 
     if (youtubeRegex.test(url)) {
       return this.youtubeDownloader;

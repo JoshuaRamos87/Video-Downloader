@@ -26,12 +26,23 @@ export interface VideoFormat {
   previewUrl?: string;
 }
 
+export interface PlaylistItem {
+  id: string;
+  title: string;
+  artist?: string;
+  thumbnail?: string;
+  url: string;
+  selected?: boolean;
+}
+
 export interface VideoInfoResponse {
   success: boolean;
   title?: string;
   thumbnail?: string;
   previewUrl?: string;
   formats?: VideoFormat[];
+  isPlaylist?: boolean;
+  playlistItems?: PlaylistItem[];
   error?: string;
 }
 
@@ -45,6 +56,15 @@ export interface DownloadProgress {
 export interface DownloadRequest {
   url: string;
   outputPath: string;
+  formatId: string;
+  ext?: string;
+  isPlaylistDownload?: boolean;
+}
+
+export interface PlaylistDownloadRequest {
+  urls: string[];
+  outputPath: string;
+  albumName: string;
   formatId: string;
   ext?: string;
 }

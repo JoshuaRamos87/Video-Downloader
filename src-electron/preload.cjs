@@ -27,11 +27,18 @@ contextBridge.exposeInMainWorld('electronAPI', {
     console.log('[PRELOAD] downloadVideo called');
     return ipcRenderer.invoke('download-video', data);
   },
+  downloadPlaylist: (data) => {
+    console.log('[PRELOAD] downloadPlaylist called');
+    return ipcRenderer.invoke('download-playlist', data);
+  },
   log: (level, message, ...args) => {
     ipcRenderer.send('log-message', { level, message, args });
   },
   onDownloadProgress: (callback) => {
     ipcRenderer.on('download-progress', (event, value) => callback(value));
+  },
+  onPlaylistProgress: (callback) => {
+    ipcRenderer.on('playlist-progress', (event, value) => callback(value));
   },
   windowMinimize: () => {
     console.log('[PRELOAD] windowMinimize called');

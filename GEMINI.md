@@ -22,10 +22,14 @@ Based on the completed codebase review, the application currently features:
 - **Automatic Muxing:** Seamlessly handles the merging of high-quality separate video and audio streams into a single output file to prevent quality loss.
 - **Clipboard Monitoring:** The app automatically reads the clipboard on window focus and auto-fills the input if a supported video URL is detected.
 - **Download History & Management:** A searchable history interface tracks all downloads. Users can copy original links, natively open the downloaded file's folder via OS integration, delete specific history items (and optionally the downloaded file itself), or wipe the entire history.
+- **Batch Downloading & Playlists:** Supports downloading entire albums or playlists concurrently (up to 5 at a time), automatically organizing them into dedicated subfolders.
 - **Theming:** Includes a robust theming engine supporting 'system', 'dark', 'light', 'sepia', 'dracula', and 'nord' themes.
 - **Developer Tools:** A dedicated developer settings view that displays real-time, streaming backend logs in the UI.
 - **Platform Support:** 
   - Optimized support for **YouTube** (full metadata retrieval, all quality levels).
+  - Specialized support for **YouTube Music** (album/playlist parsing, high-resolution album art extraction, automatic M4A conversion, and ID3 metadata tagging).
+  - **Smart Playlist UI:** Automatically hides redundant download buttons and format selectors when downloading YouTube Music playlists, defaulting to the best available audio format.
+  - **Clean File Naming:** Playlist downloads now use clean `Title.ext` naming conventions, while single downloads retain unique suffixes to prevent collisions.
   - Support for **Twitter / X** media extraction.
   - Support for **Reddit**, **TikTok**, and **Instagram** downloads is fully implemented.
 

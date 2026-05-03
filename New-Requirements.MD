@@ -1,12 +1,7 @@
-# Task: [Task Name]
+# New Requirements
 
 ## Overview
-[Brief description of the task]
+(No active task)
 
-## Implementation Checklist
-- [ ] [Task 1]
-- [ ] [Task 2]
-
-## Alignment with Project Rules
-- [Rule 1]
-- [Rule 2]
+## Checklist
+- [ ] Task 1

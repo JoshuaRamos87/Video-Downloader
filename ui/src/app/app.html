@@ -139,8 +139,49 @@
   <div *ngIf="videoInfo()">
     <span class="section-title">Video details:</span>
     <div class="video-info">
-      <!-- Custom UI for general sniffer -->
-      <div *ngIf="isGeneralSniffedResult(); else standardVideoUI" class="sniffer-results">
+      
+      <!-- Playlist UI -->
+      <div *ngIf="videoInfo().isPlaylist; else singleVideoUI" class="playlist-results">
+        <div class="video-header">
+          <div class="thumbnail-container">
+            <img [src]="videoInfo().thumbnail" alt="Album Art" class="thumbnail">
+          </div>
+          <div class="video-details">
+            <h3>{{ videoInfo().title }}</h3>
+            <p>{{ videoInfo().playlistItems?.length }} tracks</p>
+            <div *ngIf="videoInfo().formats?.length > 1">
+              <label for="playlistFormat">Format:</label>
+              <select id="playlistFormat" [ngModel]="selectedFormatId()" (ngModelChange)="selectedFormatId.set($event)" [disabled]="isDownloading()">
+                <option *ngFor="let f of videoInfo().formats" [value]="f.id">
+                  {{ f.note }}
+                </option>
+              </select>
+            </div>
+          </div>
+        </div>
+        
+        <div class="playlist-items">
+          <div *ngFor="let item of videoInfo().playlistItems" class="playlist-item" [class.selected]="item.selected" (click)="togglePlaylistItem(item)">
+            <input type="checkbox" [checked]="item.selected" (click)="$event.stopPropagation(); togglePlaylistItem(item)">
+            <img [src]="item.thumbnail" class="playlist-item-thumb">
+            <div class="playlist-item-info">
+              <div class="playlist-item-title">{{ item.title }}</div>
+              <div class="playlist-item-artist">{{ item.artist }}</div>
+            </div>
+            <div class="playlist-item-progress" *ngIf="playlistProgress()[item.url]">
+              {{ playlistProgress()[item.url].percent }}%
+            </div>
+          </div>
+        </div>
+        
+        <button class="download-btn" (click)="downloadPlaylist()" [disabled]="isDownloading() || !outputPath() || !selectedFormatId()">
+          {{ isDownloading() ? 'Downloading...' : 'Download Selected' }}
+        </button>
+      </div>
+
+      <ng-template #singleVideoUI>
+        <!-- Custom UI for general sniffer -->
+        <div *ngIf="isGeneralSniffedResult(); else standardVideoUI" class="sniffer-results">
         <div class="sniffer-results-header">
           <p class="sniffer-hint">We discovered {{ videoInfo().formats.length }} media source(s) on the page. Please select the correct one to download.</p>
         </div>
@@ -247,6 +288,7 @@
           </div>
         </div>
       </ng-template>
+      </ng-template>
     </div>
   </div>
 
@@ -261,7 +303,7 @@
     </div>
   </div>
 
-  <button class="download-btn" (click)="download()" [disabled]="isDownloading() || isFetchingInfo() || !url() || !outputPath() || !selectedFormatId()">
+  <button *ngIf="!videoInfo()?.isPlaylist" class="download-btn" (click)="download()" [disabled]="isDownloading() || isFetchingInfo() || !url() || !outputPath() || !selectedFormatId()">
     {{ isDownloading() ? 'Downloading...' : 'Download' }}
   </button>
 

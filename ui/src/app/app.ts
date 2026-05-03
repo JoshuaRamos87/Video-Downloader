@@ -49,6 +49,8 @@ export class App implements OnInit {
     totalSize: ''
   });
 
+  playlistProgress = signal<Record<string, any>>({});
+
   downloadHistory = signal<any[]>([]);
   historySearchQuery = signal<string>('');
   activeHistoryMenu = signal<string | null>(null);
@@ -148,6 +150,15 @@ export class App implements OnInit {
         api.onDownloadProgress((data: any) => {
           this.ngZone.run(() => {
             this.progress.set(data);
+          });
+        });
+
+        api.onPlaylistProgress((data: any) => {
+          this.ngZone.run(() => {
+            this.playlistProgress.update(p => ({
+              ...p,
+              [data.url]: data.progress
+            }));
           });
         });
 
@@ -369,6 +380,82 @@ export class App implements OnInit {
       }
     } catch (err: any) {
       this.api.log('ERROR', 'Error in selectDirectory', err.message);
+    }
+  }
+
+  togglePlaylistItem(item: any) {
+    item.selected = !item.selected;
+    // Force change detection by creating a new reference
+    this.videoInfo.update((info: any) => ({ ...info }));
+  }
+
+  async downloadPlaylist() {
+    if (!this.outputPath() || !this.api) {
+      this.status.set('Please select an output path.');
+      return;
+    }
+
+    const info = this.videoInfo();
+    if (!info || !info.isPlaylist || !info.playlistItems) return;
+
+    const selectedItems = info.playlistItems.filter((item: any) => item.selected);
+    if (selectedItems.length === 0) {
+      this.status.set('Please select at least one track to download.');
+      return;
+    }
+
+    this.api.log('INFO', `Starting playlist download: ${info.title} (${selectedItems.length} tracks)`);
+    this.isDownloading.set(true);
+    this.isSuccess.set(false);
+    this.status.set(`Downloading ${selectedItems.length} tracks...`);
+    this.playlistProgress.set({});
+
+    try {
+      const urls = selectedItems.map((item: any) => item.url);
+      const selectedFormat = info.formats?.find((f: any) => f.id === this.selectedFormatId());
+
+      const results = await this.api.downloadPlaylist({
+        urls,
+        outputPath: this.outputPath(),
+        albumName: info.title,
+        formatId: this.selectedFormatId(),
+        ext: selectedFormat?.ext
+      });
+
+      this.ngZone.run(async () => {
+        const successCount = results.filter((r: any) => r.success).length;
+        if (successCount > 0) {
+          this.api.log('INFO', `Playlist download finished. ${successCount}/${results.length} successful.`);
+          this.status.set(`Downloaded ${successCount} tracks successfully! Click here to open folder.`);
+          this.isSuccess.set(true);
+
+          // Add to history (just one entry for the album)
+          const newItem = {
+            id: Date.now().toString(),
+            title: info.title || 'Unknown Album',
+            thumbnail: info.thumbnail || '',
+            filePath: results.find((r: any) => r.success)?.filePath || this.outputPath(), // Just point to one of the files or the folder
+            timestamp: Date.now(),
+            originalUrl: this.url()
+          };
+          this.downloadHistory.update(h => [newItem, ...h]);
+          
+          const config = await this.api.getConfig();
+          await this.api.setConfig({ ...config, downloadHistory: this.downloadHistory() });
+        } else {
+          this.api.log('ERROR', `Playlist download failed completely.`);
+          this.status.set(`Error: All downloads failed.`);
+        }
+      });
+    } catch (err: any) {
+      this.ngZone.run(() => {
+        this.api.log('ERROR', 'Critical error in downloadPlaylist', err.message);
+        this.status.set(`Critical Error: ${err.message}`);
+      });
+    } finally {
+      this.ngZone.run(() => {
+        this.isDownloading.set(false);
+      });
     }
   }
 
