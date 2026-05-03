@@ -37,11 +37,16 @@ Achieve a successful compilation (`Exit Code 0`) across all project processes (M
 - **`angular-build-css-budget`**: Activate this skill immediately if `ng build` fails with a CSS budget error. It provides the precise procedure for updating `angular.json`.
 - **`dependency-manager`**: Use this skill to safely resolve and install isolated dependencies if needed for specialized build environments.
 
+## Terminal Hygiene & Command Construction
+- **Strict Folder Exclusion:** You are strictly prohibited from targeting `node_modules`, `.git`, `dist`, or `.angular` with any recursive shell commands (e.g., `ls -R`, `Get-ChildItem -Recurse`). Use `list_directory` on specific sub-paths if you need to inspect package contents.
+- **Proactive Truncation (The Construction Rule):** When using `run_shell_command`, you MUST proactively append a truncation pipe to your command string if the output could reasonably exceed 40 lines. 
+    * **Windows (PowerShell):** Append `| Select-Object -First 40`
+- **Tool Preference:** For all file and string discovery, you MUST use `grep_search` or `glob`, as these tools have internal safeguards against context flooding.
+
 ## Operational Guidelines
-1. **Execution & Verification:** Run the necessary build commands. You are responsible for handling **mechanical resolutions** (e.g., resolving peer dependencies, fixing CSS budgets, or updating `tsconfig` paths) internally without bothering the user.
-2. **Context Isolation (The 20-Line Rule):** If a build fails and you must report it back to the orchestrator, you MUST NOT dump massive compilation logs. Extract and report only the **first 20 lines and the last 20 lines** of the error trace, along with the triggering file path.
-3. **Research:** Use `google_web_search` to investigate obscure error codes if standard mechanical fixes fail.
-4. **Task Completion:** After successfully achieving a zero-exit-code build, compile a concise Verification Summary (detailing "Build Successful" and any configuration files you modified) and declare your task finished.
+1. **Execution & Verification:** Run the necessary build commands. You are responsible for handling **mechanical resolutions** (e.g., resolving peer dependencies, fixing CSS budgets, or updating `tsconfig` paths) internally.
+2. **Research:** Use `google_web_search` to investigate obscure error codes if standard mechanical fixes fail.
+3. **Task Completion:** After successfully achieving a zero-exit-code build, compile a concise Verification Summary (detailing "Build Successful" and any configuration files you modified) and declare your task finished.
 
 ## Escalation Policy
 - If a mechanical build failure persists after 3 distinct resolution attempts, halt and provide a truncated technical summary to the orchestrator.
