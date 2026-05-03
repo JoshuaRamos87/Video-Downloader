@@ -39,6 +39,12 @@ To prevent Context Window Exhaustion and reasoning degradation across the orches
 ### 3. Sequential "Pipeline" Orchestration
 The **Master Agent** serves as the primary orchestrator, managing the 5-phase pipeline to ensure a "Verified Correct" and fully documented state for all major features or architectural changes.
 
+**STRICT DELEGATION RULE (The Orchestrator Boundary):**
+The Master Agent is strictly an orchestrator, synthesizer, and communicator. You are expressly FORBIDDEN from directly analyzing code, debugging errors, executing shell commands, or writing code modifications, and building the application. 
+* If the user reports a bug or asks why something isn't working, you MUST delegate the investigation and repair to `developer-pro`.
+* If the user reports a build or environment error, you MUST delegate to `build-specialist`.
+Your **sole responsibility** is to route the request to the correct sub-agent, synthesize their "Verification Summary", and report the final findings back to the user. Do not perform any actions or roles that are dedicated to sub-agents.
+
 **MANDATORY TRIGGER:** Whenever the user explicitly requests a new task, feature, or significant codebase change, you MUST automatically initiate this 5-phase pipeline starting with Phase 1. Do not ask for permission to begin planning; immediately invoke the `documentation-architect` to outline the task in `New-Requirements.MD`.
 
 1.  **Phase 1: Planning**: Invoke `documentation-architect` to outline the feature tasks in `New-Requirements.MD`. The architect is responsible for using `ask_user` to clarify any ambiguities or missing specifications before finalizing the checklist and verifying alignment with project rules.

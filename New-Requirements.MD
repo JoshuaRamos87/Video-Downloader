@@ -1,16 +1,23 @@
 # Task: [Task Name]
 
-[Brief description of the task]
+## Problem
+[Describe the problem or feature request]
 
 ## Requirements
 
-- [ ] Requirement 1
-- [ ] Requirement 2
+### 1. [Requirement 1]
+- **File**: `path/to/file`
+- **Change**: [Description of change]
 
-## Technical Details
-- **Files**: [List of files to be modified]
-- **Logic Change**: [Description of the logic change]
+### 2. [Requirement 2]
+- **File**: `path/to/file`
+- **Change**: [Description of change]
 
 ## Verification Plan
-- [ ] Test Case 1
-- [ ] Test Case 2
+
+### Automated Tests
+- [ ] [Test 1]
+
+### Manual Verification
+1. [Step 1]
+2. [Step 2]

@@ -1,6 +1,7 @@
 import { Component, signal, computed, OnInit, Inject, PLATFORM_ID, HostListener, NgZone, effect, Renderer2, ElementRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-root',
@@ -35,7 +36,7 @@ export class App implements OnInit {
   videoInfo = signal<any>(null);
   selectedFormatId = signal('');
   hoveredPreviewUrl = signal<string | null>(null);
-  previewVideoUrl = signal<string | null>(null);
+  previewVideoUrl = signal<SafeResourceUrl | string | null>(null);
 
   // Filters
   selectedExtension = signal<string>('All');
@@ -127,7 +128,8 @@ export class App implements OnInit {
     @Inject(PLATFORM_ID) private platformId: Object,
     private ngZone: NgZone,
     private renderer: Renderer2,
-    private el: ElementRef
+    private el: ElementRef,
+    private sanitizer: DomSanitizer
   ) {
     // Explicitly manage theme classes using an effect
     effect(() => {
@@ -182,6 +184,14 @@ export class App implements OnInit {
       }
     }
   }
+
+  safePreviewVideoUrl = computed(() => {
+    const url = this.previewVideoUrl();
+    if (!url) return null;
+    // If it's already a SafeResourceUrl, return it as is
+    if (typeof url !== 'string') return url;
+    return this.sanitizer.bypassSecurityTrustResourceUrl(url);
+  });
 
   async ngOnInit() {
     if (isPlatformBrowser(this.platformId)) {
@@ -749,5 +759,53 @@ export class App implements OnInit {
 
   closePreview() {
     this.previewVideoUrl.set(null);
+  }
+
+  openLocalPreview(filePath: string) {
+    if (filePath) {
+      // Normalize backslashes to forward slashes for URL consistency
+      const normalizedPath = filePath.replace(/\\/g, '/');
+      // Encode the path for the custom protocol
+      const encodedPath = encodeURIComponent(normalizedPath);
+      const protocolUrl = `media-loader://local/${encodedPath}`;
+      if (this.api) this.api.log('INFO', `Opening local preview: ${protocolUrl}`);
+      
+      // Explicitly bypass security for the custom protocol URL
+      this.previewVideoUrl.set(this.sanitizer.bypassSecurityTrustResourceUrl(protocolUrl));
+    }
+  }
+
+  onVideoError(event: any) {
+    const videoElement = event.target;
+    const error = videoElement.error;
+    let errorMessage = 'Unknown error';
+    if (error) {
+      switch (error.code) {
+        case error.MEDIA_ERR_ABORTED:
+          errorMessage = 'Fetching process aborted by user';
+          break;
+        case error.MEDIA_ERR_NETWORK:
+          errorMessage = 'Network error occurred';
+          break;
+        case error.MEDIA_ERR_DECODE:
+          errorMessage = 'Decoding error occurred';
+          break;
+        case error.MEDIA_ERR_SRC_NOT_SUPPORTED:
+          errorMessage = 'Video format not supported or source not found';
+          break;
+      }
+      if (error.message) {
+        errorMessage += `: ${error.message}`;
+      }
+    }
+    if (this.api) {
+      this.api.log('ERROR', `Video playback error: ${errorMessage} (URL: ${videoElement.src})`);
+    }
+    this.showToast(`Playback error: ${errorMessage}`);
+  }
+
+  sanitizeUrl(url: string | null): SafeResourceUrl | null {
+    if (!url) return null;
+    return this.sanitizer.bypassSecurityTrustResourceUrl(url);
   }
 }

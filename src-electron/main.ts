@@ -1,6 +1,6 @@
-import { app, BrowserWindow, ipcMain, dialog, clipboard, shell } from 'electron';
+import { app, BrowserWindow, ipcMain, dialog, clipboard, shell, protocol, net } from 'electron';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import fs from 'node:fs';
 import { logger } from './logger.js';
 import { DownloaderFactory } from './downloaders/downloader.factory.js';
@@ -13,6 +13,21 @@ import {
 
 // Force UTF-8 for child processes (especially yt-dlp on Windows)
 process.env.PYTHONIOENCODING = 'utf-8';
+
+// Register media-loader protocol as privileged to allow streaming and fetch
+protocol.registerSchemesAsPrivileged([
+  { 
+    scheme: 'media-loader', 
+    privileges: { 
+      secure: true, 
+      standard: true, 
+      supportFetchAPI: true, 
+      stream: true, 
+      bypassCSP: true,
+      corsEnabled: true 
+    } 
+  }
+]);
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -81,6 +96,42 @@ function createWindow(): void {
 }
 
 app.whenReady().then(async () => {
+  // Register media-loader protocol to serve local files
+  protocol.handle('media-loader', async (request) => {
+    try {
+      const url = new URL(request.url);
+      // Extract path from pathname (e.g., /C:/path or /home/user/path)
+      let decodedPath = decodeURIComponent(url.pathname);
+      
+      // On Windows, pathname often starts with a leading slash (e.g., /C:/...)
+      if (process.platform === 'win32' && decodedPath.startsWith('/')) {
+        decodedPath = decodedPath.substring(1);
+      }
+      
+      // Handle potential double slashes from URL parsing on non-Windows
+      if (decodedPath.startsWith('//')) {
+        decodedPath = decodedPath.substring(1);
+      }
+
+      logger.info(`[media-loader] Request URL: ${request.url}`);
+      logger.info(`[media-loader] Extracted Path: ${decodedPath}`);
+      
+      if (!fs.existsSync(decodedPath)) {
+        logger.error(`[media-loader] File not found: ${decodedPath}`);
+        return new Response('File not found', { status: 404 });
+      }
+
+      const fileUrl = pathToFileURL(decodedPath).toString();
+      logger.info(`[media-loader] Fetching: ${fileUrl}`);
+      
+      // Use net.fetch which handles range requests automatically for local files in Electron
+      return await net.fetch(fileUrl);
+    } catch (error: any) {
+      logger.error(`[media-loader] Protocol error: ${error.message}`);
+      return new Response(`Error loading media: ${error.message}`, { status: 500 });
+    }
+  });
+
   // Debug preload errors
   app.on('web-contents-created', (event, contents) => {
     contents.on('preload-error', (event, preloadPath, error) => {
