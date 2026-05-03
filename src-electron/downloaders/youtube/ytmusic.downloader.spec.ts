@@ -29,6 +29,67 @@ vi.mock('youtubei.js', () => ({
       music: {
         getPlaylist: vi.fn().mockImplementation((listId) => {
           if (listId === 'invalid_playlist') return null;
+          if (listId === 'artists_playlist') {
+            return {
+              header: { 
+                title: { toString: () => 'Artists Playlist' }, 
+                thumbnail: { contents: [{ url: 'mock_playlist_thumb.jpg' }] } 
+              },
+              items: [
+                { 
+                  type: 'MusicResponsiveListItem', 
+                  id: 'mockid3', 
+                  title: { toString: () => 'Song 3' }, 
+                  artists: [{ name: 'Artist 3' }], 
+                  thumbnail: { contents: [{ url: 'thumb3.jpg' }] } 
+                }
+              ]
+            };
+          }
+          if (listId === 'header_text_playlist') {
+            return {
+              header: { 
+                title: { text: 'Header Text Playlist' }, 
+                thumbnails: [{ url: 'high_res_thumb.jpg' }] 
+              },
+              items: []
+            };
+          }
+          if (listId === 'direct_array_playlist') {
+            return {
+              header: { 
+                title: { text: 'Direct Array Playlist' }, 
+                thumbnail: [
+                  { url: 'low_res.jpg' },
+                  { url: 'high_res_direct.jpg' }
+                ]
+              },
+              items: [
+                { 
+                  type: 'MusicResponsiveListItem', 
+                  id: 'direct_item_id', 
+                  title: { toString: () => 'Direct Item' }, 
+                  authors: [{ name: 'Direct Artist' }], 
+                  thumbnail: [{ url: 'item_direct_thumb.jpg' }] 
+                }
+              ]
+            };
+          }
+          if (listId === 'no_header_playlist') {
+            return {
+              header: undefined,
+              items: [
+                { 
+                  type: 'MusicResponsiveListItem', 
+                  id: 'fallback_id', 
+                  title: { toString: () => 'Fallback Song' }, 
+                  authors: [{ name: 'Fallback Artist' }], 
+                  thumbnail: [{ url: 'fallback_item_thumb.jpg' }],
+                  album: { name: 'Fallback Album' }
+                }
+              ]
+            };
+          }
           return {
             header: { 
               title: { toString: () => 'Mock Playlist' }, 
@@ -97,6 +158,45 @@ describe('YtMusicDownloader', () => {
         expect(result.playlistItems![0].url).toBe('https://music.youtube.com/watch?v=mockid1');
         expect(result.formats!.length).toBe(1);
         expect(result.formats![0].id).toBe('bestaudio');
+      }
+    });
+
+    it('should correctly extract artists when authors field is missing', async () => {
+      const result = await downloader.getVideoInfo('https://music.youtube.com/playlist?list=artists_playlist');
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.playlistItems).toBeDefined();
+        expect(result.playlistItems!.length).toBe(1);
+        expect(result.playlistItems![0].artist).toBe('Artist 3');
+      }
+    });
+
+    it('should handle alternative header structures', async () => {
+      const result = await downloader.getVideoInfo('https://music.youtube.com/playlist?list=header_text_playlist');
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.title).toBe('Header Text Playlist');
+        expect(result.thumbnail).toBe('high_res_thumb.jpg');
+      }
+    });
+
+    it('should handle header.thumbnail as a direct array', async () => {
+      const result = await downloader.getVideoInfo('https://music.youtube.com/playlist?list=direct_array_playlist');
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.title).toBe('Direct Array Playlist');
+        expect(result.thumbnail).toBe('high_res_direct.jpg');
+        expect(result.playlistItems).toBeDefined();
+        expect(result.playlistItems![0].thumbnail).toBe('item_direct_thumb.jpg');
+      }
+    });
+
+    it('should use fallback title and thumbnail when header is missing', async () => {
+      const result = await downloader.getVideoInfo('https://music.youtube.com/playlist?list=no_header_playlist');
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.title).toBe('Fallback Album');
+        expect(result.thumbnail).toBe('fallback_item_thumb.jpg');
       }
     });
 

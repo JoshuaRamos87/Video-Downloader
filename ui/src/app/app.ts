@@ -26,7 +26,7 @@ export class App implements OnInit {
   osTheme = signal<string>('light');
   showDevLogs = signal(false);
   enableDownloadHistory = signal(true);
-  appVersion = signal('4.5.0');
+  appVersion = signal('5.0.0');
   showAboutModal = signal(false);
   logs = signal<any[]>([]);
   private toastTimeout: any;

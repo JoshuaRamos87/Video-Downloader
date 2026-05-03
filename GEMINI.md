@@ -28,6 +28,7 @@ Based on the completed codebase review, the application currently features:
 - **Platform Support:** 
   - Optimized support for **YouTube** (full metadata retrieval, all quality levels).
   - Specialized support for **YouTube Music** (album/playlist parsing, high-resolution album art extraction, automatic M4A conversion, and ID3 metadata tagging).
+  - **Robust YouTube Music Metadata:** Improved extraction logic for playlists and albums, ensuring correct artist names, high-resolution thumbnails, and playlist titles are retrieved using defensive property checks.
   - **Smart Playlist UI:** Automatically hides redundant download buttons and format selectors when downloading YouTube Music playlists, defaulting to the best available audio format.
   - **Clean File Naming:** Playlist downloads now use clean `Title.ext` naming conventions, while single downloads retain unique suffixes to prevent collisions.
   - Support for **Twitter / X** media extraction.
@@ -64,3 +65,8 @@ Sub-agents must report a concise "Verification Summary" back to the main agent, 
 - **Action Taken**: Brief summary of modified files.
 
 The main agent (Orchestrator) is responsible for synthesizing these reports and providing the final update to the user. Do not return to the user until the Build Verification phase has passed.
+
+## Technical Memories
+- **Innertube vs yt-dlp:** Using `youtubei.js` (Innertube) for metadata and format listing is significantly more resilient to YouTube's bot detection than `yt-dlp --dump-json`.
+- **MP4 Muxing:** To ensure MP4 output, use `--merge-output-format mp4` and prioritize AAC (`m4a`) audio.
+- **YouTube Music Thumbnails:** The API can return thumbnails in `thumbnails` (array), `thumbnail` (array), or `thumbnail.contents` (array). Always use defensive checks for all three.

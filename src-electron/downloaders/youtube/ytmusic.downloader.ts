@@ -59,17 +59,8 @@ export class YtMusicDownloader implements BaseDownloader {
         const playlist = await yt.music.getPlaylist(listId);
         if (!playlist) throw new Error('Could not fetch playlist info');
 
-        const header = playlist.header as any;
-        const title = header?.title?.text || header?.title?.toString() || 'Unknown Playlist';
-        
-        // Get high-res thumbnail from header
-        let thumbnail = '';
-        if (header?.thumbnail?.contents && header.thumbnail.contents.length > 0) {
-          // Use the last one for highest resolution
-          thumbnail = header.thumbnail.contents[header.thumbnail.contents.length - 1].url;
-        }
-        
         const playlistItems: PlaylistItem[] = [];
+        let fallbackTitle = '';
         
         if (playlist.items) {
           for (const item of playlist.items) {
@@ -77,14 +68,27 @@ export class YtMusicDownloader implements BaseDownloader {
               const musicItem = item as any;
               if (musicItem.id) {
                 let itemThumb = '';
-                if (musicItem.thumbnail?.contents && musicItem.thumbnail.contents.length > 0) {
-                  itemThumb = musicItem.thumbnail.contents[0].url;
+                const itemThumbs = musicItem.thumbnails || (Array.isArray(musicItem.thumbnail) ? musicItem.thumbnail : musicItem.thumbnail?.contents) || [];
+                if (Array.isArray(itemThumbs) && itemThumbs.length > 0) {
+                  // Use the last one for highest resolution
+                  itemThumb = itemThumbs[itemThumbs.length - 1].url;
+                }
+
+                // Defensive artist extraction
+                const artists = musicItem.artists || musicItem.authors || [];
+                const artistName = Array.isArray(artists) 
+                  ? artists.map((a: any) => a.name).join(', ') 
+                  : 'Unknown Artist';
+
+                // Capture fallback title from first item if needed (Album name or Artist)
+                if (!fallbackTitle) {
+                  fallbackTitle = musicItem.album?.name || musicItem.album?.toString() || artistName;
                 }
 
                 playlistItems.push({
                   id: musicItem.id,
                   title: musicItem.title?.toString() || 'Unknown Title',
-                  artist: musicItem.authors?.map((a: any) => a.name).join(', ') || 'Unknown Artist',
+                  artist: artistName,
                   thumbnail: itemThumb,
                   url: `https://music.youtube.com/watch?v=${musicItem.id}`,
                   selected: true
@@ -94,9 +98,31 @@ export class YtMusicDownloader implements BaseDownloader {
           }
         }
 
+        const header = playlist.header as any;
+        let title = header?.title?.text || header?.title?.toString();
+        
+        // Get high-res thumbnail from header
+        let thumbnail = '';
+        const thumbnails = header?.thumbnails || (Array.isArray(header?.thumbnail) ? header.thumbnail : header?.thumbnail?.contents) || [];
+        if (Array.isArray(thumbnails) && thumbnails.length > 0) {
+          // Use the last one for highest resolution
+          thumbnail = thumbnails[thumbnails.length - 1].url;
+        }
+
+        // Apply fallbacks if header metadata is missing
+        if (!title || title === 'Unknown Playlist') {
+          title = fallbackTitle || 'Unknown Playlist';
+          if (fallbackTitle) logger.info(`YtMusicDownloader: Using fallback title: ${title}`);
+        }
+
+        if (!thumbnail && playlistItems.length > 0) {
+          thumbnail = playlistItems[0].thumbnail || '';
+          if (thumbnail) logger.info(`YtMusicDownloader: Using fallback thumbnail from first track`);
+        }
+
         return {
           success: true,
-          title,
+          title: title || 'Unknown Playlist',
           thumbnail,
           isPlaylist: true,
           playlistItems,
