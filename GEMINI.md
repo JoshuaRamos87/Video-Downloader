@@ -26,6 +26,7 @@ Based on the completed codebase review, the application currently features:
 - **Developer Tools:** A dedicated developer settings view that displays real-time, streaming backend logs in the UI.
 - **Platform Support:** - Optimized support for **YouTube** (full metadata retrieval, all quality levels).
   - Specialized support for **YouTube Music** (album/playlist parsing, high-resolution album art extraction, automatic M4A conversion, and ID3 metadata tagging).
+  - **Interactive Playlist Player:** YouTube Music playlists now feature an integrated audio player. Users can preview individual tracks with a dedicated play/pause button, or use the main playlist play button to toggle playback for the entire album. Includes a visual EQ animation for the currently playing track.
   - **Smart Playlist UI:** Automatically hides redundant download buttons and format selectors when downloading YouTube Music playlists, defaulting to the best available audio format.
   - **Clean File Naming:** Playlist downloads now use clean `Title.ext` naming conventions, while single downloads retain unique suffixes to prevent collisions.
   - Support for **Twitter / X** media extraction.
@@ -71,9 +72,9 @@ The **Master Agent** serves as the primary orchestrator, managing the 5-phase pi
 5.  **Phase 5: Review & Docs**: Invoke `documentation-architect` to review if the implementation matches the `New-Requirements.MD` list. If deviations are found, the `documentation-architect` must document them and report back to the Master Agent. The Master Agent will then decide to either approve the deviation or send it back to Phase 2 for correction. If compliant, update feature status, move completed specs **specifically to the "Current Features" section of this `GEMINI.md` document** (ensuring no orchestration rules are altered), and reset the requirements file.
 
 ### 4. Reporting Protocol
-Sub-agents must report a concise "Verification Summary" back to the main agent, including:
-- **Build Status**: (e.g., "Build Successful" or "Failed with Error X").
-- **Test Results**: (e.g., "All 5 tests passed").
-- **Action Taken**: Brief summary of modified files using Search/Replace targets or new file additions.
+Sub-agents must report a concise "Verification Summary" back to the main agent, tailored to their specific phase:
+- **Phase 2 (Dev):** Reports "Action Taken" (files modified/created) and "Dependencies Required" (explicit npm commands).
+- **Phase 3 (Build):** Reports "Build Status" (e.g., "Build Successful" or 20-line failure logs).
+- **Phase 4 (Test):** Reports "Test Results" (e.g., "All tests passed" or coverage summary).
 
 The main agent (Orchestrator) is responsible for synthesizing these reports and providing the final update to the user. Do not return to the user until the Build Verification phase has passed.
