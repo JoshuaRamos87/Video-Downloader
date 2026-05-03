@@ -41,7 +41,9 @@ To maintain context efficiency and project integrity, follow this tiered orchest
 - **`angular-expert`**: Use for complex UI design or Signal-based state management.
 
 ### 2. Sequential "Pipeline" Orchestration
-The **Master Agent** serves as the primary orchestrator, managing the 5-phase pipeline to ensure a "Verified Correct" and fully documented state for all major features or architectural changes:
+The **Master Agent** serves as the primary orchestrator, managing the 5-phase pipeline to ensure a "Verified Correct" and fully documented state for all major features or architectural changes.
+
+**MANDATORY TRIGGER:** Whenever the user explicitly requests a new task, feature, or significant codebase change, you MUST automatically initiate this 5-phase pipeline starting with Phase 1. Do not ask for permission to begin planning; immediately invoke the `documentation-architect` to outline the task in `New-Requirements.MD`.
 
 1.  **Phase 1: Planning**: Invoke `documentation-architect` to outline the feature tasks in `New-Requirements.MD`. The architect is responsible for using `ask_user` to clarify any ambiguities or missing specifications before finalizing the checklist and verifying alignment with project rules.
 2.  **Phase 2: Development**: Invoke `developer-pro` to implement the logic according to the requirements, ensuring the code matches modern Angular and Electron standards.
