@@ -15,6 +15,7 @@ This project is a sleek, desktop-based utility designed to streamline the proces
 Based on the completed codebase review, the application currently features:
 
 - **Format Selection & Filtering:** Users can paste a video URL and the UI displays available file types, sizes, and resolutions. Users can actively filter these formats by extension (e.g., MP4, WEBM) and resolution (e.g., 1080p, 720p).
+- **Format Preview:** Users can click a 'Preview' button on any format selection to open a native video player modal, allowing them to preview the specific format's video and audio quality before downloading.
 - **Smart Configuration / Saved State:** The application remembers the user's preferred save location and theme between sessions.
 - **Real-Time Download Progress:** A detailed progress monitor displays the download speed (MB/s), estimated time remaining (ETA), and a completion percentage/progress bar.
 - **Video Preview on Hover:** Hovering over a video thumbnail (in both standard and sniffed results) triggers a live video preview, providing an instant glimpse of the content.

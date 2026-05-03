@@ -300,3 +300,23 @@ button:disabled {
   background: #fff;
   border-radius: 50%;
 }
+
+.preview-btn {
+  background: var(--bg-button);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+  padding: 0.2rem 0.5rem;
+  font-size: 0.75rem;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.preview-btn:hover {
+  background: var(--bg-button-hover);
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+}

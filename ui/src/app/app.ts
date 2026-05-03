@@ -35,6 +35,7 @@ export class App implements OnInit {
   videoInfo = signal<any>(null);
   selectedFormatId = signal('');
   hoveredPreviewUrl = signal<string | null>(null);
+  previewVideoUrl = signal<string | null>(null);
 
   // Filters
   selectedExtension = signal<string>('All');
@@ -614,6 +615,13 @@ export class App implements OnInit {
     return uniqueFormats;
   }
 
+  get selectedFormatPreviewUrl(): string | null {
+    const info = this.videoInfo();
+    if (!info || !info.formats) return null;
+    const selected = info.formats.find((f: any) => f.id === this.selectedFormatId());
+    return selected ? selected.previewUrl : null;
+  }
+
   onFilterChange() {
     const formats = this.filteredFormats;
     if (formats.length > 0) {
@@ -644,5 +652,15 @@ export class App implements OnInit {
 
   closeWindow() {
     if (this.api) this.api.windowClose();
+  }
+
+  openPreview(url: string) {
+    if (url) {
+      this.previewVideoUrl.set(url);
+    }
+  }
+
+  closePreview() {
+    this.previewVideoUrl.set(null);
   }
 }

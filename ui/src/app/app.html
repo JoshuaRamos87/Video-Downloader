@@ -171,6 +171,10 @@
                 <span class="tag ext">{{ f.ext.toUpperCase() }}</span>
                 <span class="tag duration" *ngIf="f.duration">⏱ {{ f.duration }}</span>
                 <span class="tag size" *ngIf="f.filesize > 0">{{ formatBytes(f.filesize) }}</span>
+                <button class="preview-btn" *ngIf="f.previewUrl" (click)="openPreview(f.previewUrl); $event.stopPropagation()" title="Preview Format">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                  Preview
+                </button>
               </div>
             </div>
             <div class="sniffer-item-check">
@@ -213,16 +217,28 @@
 
             <div *ngIf="filteredFormats.length > 1; else singleFormat">
               <label for="format">Select Format ({{ filteredFormats.length }} options):</label>
-              <select id="format" [ngModel]="selectedFormatId()" (ngModelChange)="selectedFormatId.set($event)" [disabled]="isDownloading()">
-                <option *ngFor="let f of filteredFormats" [value]="f.id">
-                  {{ f.resolution }} - {{ f.ext.toUpperCase() }} <ng-container *ngIf="f.filesize > 0">({{ formatBytes(f.filesize) }})</ng-container> {{ f.note }}
-                </option>
-              </select>
+              <div style="display: flex; gap: 10px; align-items: center;">
+                <select id="format" [ngModel]="selectedFormatId()" (ngModelChange)="selectedFormatId.set($event)" [disabled]="isDownloading()" style="flex: 1;">
+                  <option *ngFor="let f of filteredFormats" [value]="f.id">
+                    {{ f.resolution }} - {{ f.ext.toUpperCase() }} <ng-container *ngIf="f.filesize > 0">({{ formatBytes(f.filesize) }})</ng-container> {{ f.note }}
+                  </option>
+                </select>
+                <button class="preview-btn" *ngIf="selectedFormatPreviewUrl" (click)="openPreview(selectedFormatPreviewUrl)" title="Preview Format" style="padding: 0.5rem; display: flex; align-items: center; gap: 5px;">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                  Preview
+                </button>
+              </div>
             </div>
             <ng-template #singleFormat>
               <div class="single-format-message" *ngIf="filteredFormats.length === 1">
                 <p>✅ Only one format matches your filters! Ready to download.</p>
-                <small>{{ filteredFormats[0].resolution }} - {{ filteredFormats[0].ext.toUpperCase() }} ({{ formatBytes(filteredFormats[0].filesize) }})</small>
+                <div style="display: flex; gap: 10px; align-items: center; margin-top: 5px;">
+                  <small style="flex: 1;">{{ filteredFormats[0].resolution }} - {{ filteredFormats[0].ext.toUpperCase() }} ({{ formatBytes(filteredFormats[0].filesize) }})</small>
+                  <button class="preview-btn" *ngIf="filteredFormats[0].previewUrl" (click)="openPreview(filteredFormats[0].previewUrl)" title="Preview Format" style="padding: 0.3rem 0.6rem; display: flex; align-items: center; gap: 5px; font-size: 0.85rem;">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                    Preview
+                  </button>
+                </div>
               </div>
               <div class="single-format-message error" *ngIf="filteredFormats.length === 0">
                 <p>❌ No formats match your filters.</p>
@@ -387,5 +403,17 @@
       </div>
 
     </div>
+  </div>
+</div>
+
+<!-- Modal Overlay for Video Preview -->
+<div class="modal-overlay" *ngIf="previewVideoUrl()" (click)="closePreview()">
+  <div class="modal-content large" style="padding: 0; background: black; border: none; overflow: hidden;" (click)="$event.stopPropagation()">
+    <div class="modal-close-header" style="position: absolute; top: 10px; right: 10px; z-index: 10; background: rgba(0,0,0,0.5); border-radius: 50%;">
+      <button class="modal-close-btn" (click)="closePreview()" style="color: white;">
+        <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+      </button>
+    </div>
+    <video [src]="previewVideoUrl()" controls autoplay style="width: 100%; max-height: 85vh; display: block;"></video>
   </div>
 </div>
