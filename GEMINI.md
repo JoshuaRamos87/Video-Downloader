@@ -8,9 +8,16 @@ This project is a sleek, desktop-based utility designed to streamline the proces
 - **Frontend:** Angular (responsive, modern UI).
 - **Hybrid Download Engine:** - **Analysis Phase:** Uses `youtubei.js` (Innertube API) to fetch metadata and format lists reliably without triggering bot detection (403 Forbidden errors).
   - **Execution Phase:** Uses `yt-dlp` (via `youtube-dl-exec`) solely for downloading bitstreams and performing complex muxing (merging video and audio).
+- **Development Environment:** Windows e.g., stick to shell commands that work on Windows.
 
 ## Current Features
 If needed, see [FEATURES.md](./FEATURES.md) for the full list of implemented features.
+
+## Terminal Hygiene & Command Construction
+- **Strict Folder Exclusion:** You are strictly prohibited from targeting `node_modules`, `.git`, `dist`, or `.angular` with any recursive shell commands (e.g., `ls -R`, `Get-ChildItem -Recurse`). Use `list_directory` on specific sub-paths if you need to inspect package contents.
+- **Proactive Truncation (The Construction Rule):** When using `run_shell_command`, you MUST proactively append a truncation pipe to your command string if the output could reasonably exceed 40 lines. 
+    * **Windows (PowerShell):** Append `| Select-Object -First 40`
+- **Tool Preference:** For all file and string discovery, you MUST use `grep_search` or `glob`, as these tools have internal safeguards against context flooding.
 
 ## Sub-Agent Orchestration & Workflow
 
