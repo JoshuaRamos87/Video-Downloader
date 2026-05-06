@@ -9,14 +9,10 @@
 - **File**: `path/to/file`
 - **Change**: [Description of change]
 
-### 2. [Requirement 2]
-- **File**: `path/to/file`
-- **Change**: [Description of change]
-
 ## Verification Plan
 
 ### Automated Tests
-- [ ] [Test 1]
+- [ ] [Test description]
 
 ### Manual Verification
 1. [Step 1]
