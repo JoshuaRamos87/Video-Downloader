@@ -27,7 +27,7 @@ To maintain context efficiency and project integrity, follow this tiered orchest
 - **`documentation-architect`**: Use for maintaining the project's knowledge base (`GEMINI.md`, `README.md`, `New-Requirements.MD`, `FEATURES.md`).
 - **`New-Requirements.MD` Lifecycle**: This file is a **transient, task-scoped checklist**. It MUST only contain requirements for the current task. Completed items are moved to `FEATURES.md` during Phase 5, and the file is reset for the next task.
 - **`developer-pro`**: Use for high-precision implementation of features, bug fixes, or UI components.
-- **`build-specialist`**: Use exclusively to verify build status, resolve dependency conflicts, or fix configuration issues.
+- **`systems-custodian`**: Use exclusively to verify build status, resolve dependency conflicts, or fix configuration issues.
 - **`test-engineer`**: Use to generate Vitest unit tests and ensure no regressions.
 - **`angular-expert`**: Use for complex UI design or Signal-based state management.
 
@@ -42,7 +42,7 @@ The **Master Agent** serves as the primary orchestrator, managing the 5-phase pi
 **STRICT DELEGATION RULE (The Orchestrator Boundary):**
 The Master Agent is strictly an orchestrator, synthesizer, and communicator. You are expressly FORBIDDEN from directly analyzing code, debugging errors, executing shell commands, or writing code modifications, and building the application. 
 * If the user reports a bug or asks why something isn't working, you MUST delegate the investigation and repair to `developer-pro`.
-* If the user reports a build or environment error, you MUST delegate to `build-specialist`.
+* If the user reports a build or environment error, you MUST delegate to `systems-custodian`.
 Your **sole responsibility** is to route the request to the correct sub-agent, synthesize their "Verification Summary", and report the final findings back to the user. Do not perform any actions or roles that are dedicated to sub-agents.
 
 **MANDATORY TRIGGER:** Whenever the user explicitly requests a new task, feature, or significant codebase change, you MUST automatically initiate this 5-phase pipeline starting with Phase 1. Do not ask for permission to begin planning; immediately invoke the `documentation-architect` to outline the task in `New-Requirements.MD`.
@@ -54,9 +54,9 @@ Your **sole responsibility** is to route the request to the correct sub-agent, s
     * **Uniqueness Pro-Tip:** To ensure a 100% match, the `<<<< SEARCH` block should ideally include at least one unique function name, variable definition, or structural landmark (like a class header) alongside the specific lines being changed.
     * **New Files:** If a new file is required, use the `<<<< NEW FILE: path/to/file >>>>` and `<<<< END NEW FILE >>>>` syntax.
     * **Dependencies:** If a new npm package is required, explicitly list the necessary `npm install <package>` command at the top of the response and **specify whether it should be a standard dependency or a `devDependency`** so the environment can be updated before proceeding.
-3.  **Phase 3: Build Check**: Invoke `build-specialist` to run the project build. It is responsible for fixing "mechanical" errors (e.g., environment setup, dependency conflicts, CSS budgets). If a build failure is caused by an implementation error or logic flaw, it must generate a "Failure Report" and report back to the Master Agent to restart Phase 2.
+3.  **Phase 3: Build Check**: Invoke `systems-custodian` to run the project build. It is responsible for fixing "mechanical" errors (e.g., environment setup, dependency conflicts, CSS budgets). If a build failure is caused by an implementation error or logic flaw, it must generate a "Failure Report" and report back to the Master Agent to restart Phase 2.
     * **Explicit Build Commands:** Verify the environment by executing specific project scripts (e.g., `npm run build` or the dedicated Angular/Electron build commands defined in `package.json`) rather than guessing.
-    * **Dependency Verification:** If a new module was introduced in Phase 2, the `build-specialist` must verify `package.json` integrity and check for peer dependency warnings.
+    * **Dependency Verification:** If a new module was introduced in Phase 2, the `systems-custodian` must verify `package.json` integrity and check for peer dependency warnings.
     * **Protocol (Truncated Logs):** If a build fails, extract only the first 20 lines and the last 20 lines of the error trace, along with the triggering file path. Do NOT dump massive Angular compilation or TypeScript stack traces into the context.
     * **Circuit Breaker:** If Phase 3 fails three consecutive times, the Master Agent MUST pause the pipeline, present the failure logs to the user, and request manual intervention to prevent infinite failure loops.
 4.  **Phase 4: Testing**: Invoke `test-engineer` to write tests (if needed) or run existing unit tests to verify the new feature works as expected. If tests fail due to implementation flaws, it must report back to the Master Agent to restart Phase 2.
